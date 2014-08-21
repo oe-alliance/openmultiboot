@@ -3,6 +3,10 @@
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
+#include <string.h>
+
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 #include "omb_common.h"
 #include "omb_log.h"
@@ -11,6 +15,11 @@
 #define FBIO_SET_MANUAL_BLIT _IOW('F', 0x21, __u8)
 #define FBIO_BLIT 0x22
 #endif
+
+#define ALPHA(x) (x >> 24) & 0xff;
+#define RED(x)   (x >> 16) & 0xff;
+#define GREEN(x) (x >> 8) & 0xff;
+#define BLUE(x)   x & 0xff;
 
 static int omb_fb_fd = 0;
 static unsigned char* omb_fb_map = 0;
@@ -130,6 +139,16 @@ void omb_blit()
 		omb_log(LOG_WARNING, "cannot blit the framebuffer");
 }
 
+int omb_get_screen_width()
+{
+	return omb_var_screen_info.xres;
+}
+
+int omb_get_screen_height()
+{
+	return omb_var_screen_info.yres;
+}
+
 int omb_open_framebuffer()
 {
 	omb_fb_fd = open(OMB_FB_DEVICE, O_RDWR);
@@ -169,4 +188,142 @@ void omb_close_framebuffer()
 {
 	munmap(omb_fb_map, omb_screen_size);
 	close(omb_fb_fd);
+}
+
+void omb_clear_screen()
+{
+	memset(omb_fb_map, '\0', omb_screen_size);
+}
+
+void omb_draw_rect(int x, int y, int width, int height, int color)
+{
+	int i, j;
+	long int location = 0;
+	unsigned char alpha = ALPHA(color);
+	unsigned char red = RED(color);
+	unsigned char green = GREEN(color);
+	unsigned char blue = BLUE(color);
+	
+	for (i = y; i < y + height; i++) {
+		for (j = x; j < x + width; j++) {
+			
+			if (i < 0 || j < 0 || i > omb_var_screen_info.yres || j > omb_var_screen_info.xres)
+				continue;
+
+			location = ((j + omb_var_screen_info.xoffset) * (omb_var_screen_info.bits_per_pixel / 8)) +
+				((i + omb_var_screen_info.yoffset) * omb_fix_screen_info.line_length);
+
+			*(omb_fb_map + location) = blue;
+			*(omb_fb_map + location + 1) = green;
+			*(omb_fb_map + location + 2) = red;
+			*(omb_fb_map + location + 3) = alpha;
+		}
+	}
+}
+
+static inline int omb_is_point_inside_circle(int x, int y, int radius)
+{
+	if (((x - radius) * (x - radius)) + ((y - radius) * (y - radius)) < radius * radius)
+		return 1;
+	return 0;
+}
+
+void omb_draw_rounded_rect(int x, int y, int width, int height, int color, int radius)
+{
+	int i, j;
+	long int location = 0;
+	unsigned char alpha = ALPHA(color);
+	unsigned char red = RED(color);
+	unsigned char green = GREEN(color);
+	unsigned char blue = BLUE(color);
+	
+	for (i = y; i < y + height; i++) {
+		for (j = x; j < x + width; j++) {
+			if (i < 0 || j < 0 || i > omb_var_screen_info.yres || j > omb_var_screen_info.xres)
+				continue;
+			
+			int relative_x = j - x;
+			int relative_y = i - y;
+			
+			// top left corner
+			if (relative_y < radius && relative_x < radius) {
+				if (!omb_is_point_inside_circle(relative_x, relative_y, radius)) {
+					continue;
+				}
+			}
+			
+			// top right corner
+			else if (relative_y < radius && width - relative_x < radius) {
+				if (!omb_is_point_inside_circle(width - relative_x, relative_y, radius)) {
+					continue;
+				}
+			}
+			
+			// bottom left corner
+			else if (height - relative_y < radius && relative_x < radius) {
+				if (!omb_is_point_inside_circle(relative_x, height - relative_y, radius)) {
+					continue;
+				}
+			}
+
+			// bottom right corner
+			else if (height - relative_y < radius && width - relative_x < radius) {
+				if (!omb_is_point_inside_circle(width - relative_x, height - relative_y, radius)) {
+					continue;
+				}
+			}
+
+			location = ((j + omb_var_screen_info.xoffset) * (omb_var_screen_info.bits_per_pixel / 8)) +
+				((i + omb_var_screen_info.yoffset) * omb_fix_screen_info.line_length);
+
+			*(omb_fb_map + location) = blue;
+			*(omb_fb_map + location + 1) = green;
+			*(omb_fb_map + location + 2) = red;
+			*(omb_fb_map + location + 3) = alpha;
+		}
+	}
+}
+
+static inline unsigned char omb_blend_pixel(unsigned char background, unsigned char foreground, unsigned char foreground_alpha)
+{
+	return (foreground * (foreground_alpha / 255.0)) + (background * (1.0 - (foreground_alpha / 255.0)));
+}
+
+void omb_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color)
+{
+	int i, j, z = 0;
+	long int location = 0;
+	unsigned char alpha = ALPHA(color);
+	unsigned char red = RED(color);
+	unsigned char green = GREEN(color);
+	unsigned char blue = BLUE(color);
+	
+	for (i = y; i < y + bitmap->rows; i++) {
+		for (j = x; j < x + bitmap->width; j++) {
+			if (i < 0 || j < 0 || i > omb_var_screen_info.yres || j > omb_var_screen_info.xres) {
+				z++;
+				continue;
+			}
+			
+			if (bitmap->buffer[z] != 0x00) {
+				location = ((j + omb_var_screen_info.xoffset) * (omb_var_screen_info.bits_per_pixel / 8)) +
+					((i + omb_var_screen_info.yoffset) * omb_fix_screen_info.line_length);
+			
+				if (*(omb_fb_map + location + 3) == 0x00) {
+					*(omb_fb_map + location) = blue;
+					*(omb_fb_map + location + 1) = green;
+					*(omb_fb_map + location + 2) = red;
+					*(omb_fb_map + location + 3) = bitmap->buffer[z];
+				}
+				else {
+					*(omb_fb_map + location) = omb_blend_pixel(*(omb_fb_map + location), blue, bitmap->buffer[z]);
+					*(omb_fb_map + location + 1) = omb_blend_pixel(*(omb_fb_map + location + 1), green, bitmap->buffer[z]);
+					*(omb_fb_map + location + 2) = omb_blend_pixel(*(omb_fb_map + location + 2), red, bitmap->buffer[z]);
+					if (bitmap->buffer[z] == 0xff)
+						*(omb_fb_map + location + 3) = bitmap->buffer[z];
+				}
+			}
+			z++;
+		}
+	}
 }
