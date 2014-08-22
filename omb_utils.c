@@ -5,6 +5,7 @@
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <mntent.h>
+#include <unistd.h>
 
 #include "omb_common.h"
 #include "omb_log.h"
@@ -59,8 +60,8 @@ int omb_utils_is_mounted(const char *mountpoint)
 	
 	if ((mtab = setmntent("/etc/mtab", "r")) != NULL) {
 		while ((part = getmntent(mtab)) != NULL) {
-			if ((part->mnt_dir != NULL)
-				&& (strcmp(part->mnt_dir, mountpoint)) == 0) {
+			if (part->mnt_dir != NULL
+				&& strcmp(part->mnt_dir, mountpoint) == 0) {
 					
 				is_mounted = 1;
 			}
@@ -74,6 +75,25 @@ int omb_utils_is_mounted(const char *mountpoint)
 int omb_utils_umount(const char* mountpoint)
 {
 	return umount(mountpoint) == 0 ? OMB_SUCCESS : OMB_ERROR;
+}
+
+void omb_utils_umount_media()
+{
+	FILE* mtab = NULL;
+	struct mntent* part = NULL;
+	int is_mounted = 0;
+	
+	if ((mtab = setmntent("/etc/mtab", "r")) != NULL) {
+		while ((part = getmntent(mtab)) != NULL) {
+			if (part->mnt_dir != NULL
+				&& strlen(part->mnt_dir) > 6
+				&& memcmp(part->mnt_dir, "/media", 6) == 0) {
+					if (omb_utils_umount(part->mnt_dir) == OMB_ERROR)
+						omb_log(LOG_WARNING, "cannot umount %s", part->mnt_dir);
+				}
+		}
+		endmntent(mtab);
+	}
 }
 
 int omb_utils_find_and_mount()
@@ -136,11 +156,11 @@ omb_device_item *omb_utils_read_info(const char* base_dir, const char *identifie
 		
 		if (strlen(name) > 0) {
 			omb_device_item *item = malloc(sizeof(omb_device_item));
-			item->label = malloc(strlen(name) + strlen(version) + 4);
+			item->label = malloc(strlen(name) + strlen(version) + 2);
 			item->directory = malloc(strlen(base_dir) + 1);
 			item->identifier = malloc(strlen(identifier) + 1);
 			item->next = NULL;
-			sprintf(item->label, "%s - %s", name, version);
+			sprintf(item->label, "%s %s", name, version);
 			strcpy(item->directory, base_dir);
 			strcpy(item->identifier, identifier);
 			return item;
@@ -219,6 +239,7 @@ void omb_utils_save(const char* key, const char* value)
 	if (fd) {
 		fwrite(value, 1, strlen(value), fd);
 		fclose(fd);
+		sync();
 	}
 }
 
@@ -269,6 +290,11 @@ void omb_utils_init_system()
 	if (!omb_utils_is_mounted("/sys"))
 		if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0)
 			omb_log(LOG_ERROR, "cannot mount /sys");
+	
+	omb_log(LOG_DEBUG, "mount /media");
+	if (!omb_utils_is_mounted("/media"))
+		if (mount("tmpfs", "/media", "tmpfs", 0, "size=64k") != 0)
+			omb_log(LOG_ERROR, "cannot mount /media");
 	
 	omb_log(LOG_DEBUG, "run mdev");
 	system(OMB_MDEV_BIN);
@@ -356,18 +382,12 @@ void omb_utils_reboot()
 
 void omb_utils_sysvinit(omb_device_item *item, const char *args)
 {
-	char cmd[255];
 	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
-		if (args)
-			sprintf(cmd, "%s %s", OMB_SYSVINIT_BIN, args);
-		else
-			strcpy(cmd, OMB_SYSVINIT_BIN);
+		execl(OMB_SYSVINIT_BIN, OMB_SYSVINIT_BIN, args, NULL);
 	}
 	else {
-		if (args)
-			sprintf(cmd, "%s %s/%s/%s %s %s", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_SYSVINIT_BIN, args);
-		else
-			sprintf(cmd, "%s %s/%s/%s %s", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_SYSVINIT_BIN);
+		char path[255];
+		sprintf(path, "%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		execl(OMB_CHROOT_BIN, OMB_CHROOT_BIN, path, OMB_INIT_BIN, args, NULL);
 	}
-	omb_log(LOG_DEBUG, "%s", cmd);
 }

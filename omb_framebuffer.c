@@ -162,8 +162,8 @@ int omb_open_framebuffer()
 		return OMB_ERROR;
 	
 	if ((omb_var_screen_info.xres != OMB_SCREEN_WIDTH)
-		&& (omb_var_screen_info.yres != OMB_SCREEN_HEIGHT)
-		&& (omb_var_screen_info.bits_per_pixel != OMB_SCREEN_BPP)) {
+		|| (omb_var_screen_info.yres != OMB_SCREEN_HEIGHT)
+		|| (omb_var_screen_info.bits_per_pixel != OMB_SCREEN_BPP)) {
 			
 		if (omb_set_screen_info(OMB_SCREEN_WIDTH, OMB_SCREEN_HEIGHT, OMB_SCREEN_BPP) == OMB_ERROR)
 			return OMB_ERROR;

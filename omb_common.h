@@ -9,7 +9,7 @@
 #define OMB_INPUT_DEVICE "/dev/input/event0"
 #define OMB_VIDEO_DEVICE "/dev/dvb/adapter0/video0"
 #define OMB_KERNEL_MTD "/dev/mtd2"
-#define OMB_MAIN_DIR "/media"
+#define OMB_MAIN_DIR "/tmp/open-multiboot"
 #define OMB_DATA_DIR "open-multiboot"
 #define OMB_SCREEN_WIDTH 1280
 #define OMB_SCREEN_HEIGHT 720
@@ -21,6 +21,7 @@
 #define OMB_SHOWIFRAME_BIN "/usr/bin/showiframe"
 #define OMB_MDEV_BIN "/etc/init.d/mdev"
 #define OMB_MODUTILS_BIN "/etc/init.d/modutils.sh"
+#define OMB_INIT_BIN "/sbin/init"
 #define OMB_SYSVINIT_BIN "/sbin/init.sysvinit"
 #define OMB_CHROOT_BIN "/usr/sbin/chroot"
 #define OMB_NANDDUMP_BIN "/usr/sbin/nanddump"

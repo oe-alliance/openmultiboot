@@ -141,15 +141,19 @@ int main(int argc, char *argv[])
 			items = omb_utils_get_images();
 			omb_menu_set(items);
 			selected = omb_utils_read(OMB_SETTINGS_SELECTED);
-			if (selected != NULL)
-				omb_menu_set_selected(selected);
-		
+			if (!selected) {
+				selected = malloc(6);
+				strcpy(selected, "flash");
+			}
+			omb_menu_set_selected(selected);
 			item = omb_menu_get_selected();
-			omb_utils_update_background(item);
 		}
+		
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
-		if (!force) {
+		if (!force && items) {
 			omb_utils_load_modules(item);
+			
+			omb_utils_update_background(item);
 			omb_utils_backup_kernel(item);
 	
 			omb_show_menu();
@@ -157,16 +161,16 @@ int main(int argc, char *argv[])
 		else {
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 0);
 		}
-	
+		
+		//omb_utils_umount_media();
+		
 		item = omb_menu_get_selected();
-		if (item) {
-			if (strcmp(selected, item->identifier) != 0) {
-				omb_utils_restore_kernel(item);
-				omb_utils_save(OMB_SETTINGS_SELECTED, item->identifier);
-				omb_utils_save_int(OMB_SETTINGS_FORCE, 1);
-				omb_utils_reboot();
-				is_rebooting = 1;
-			}
+		if (item && selected && strcmp(selected, item->identifier) != 0) {
+			omb_utils_restore_kernel(item);
+			omb_utils_save(OMB_SETTINGS_SELECTED, item->identifier);
+			omb_utils_save_int(OMB_SETTINGS_FORCE, 1);
+			omb_utils_reboot();
+			is_rebooting = 1;
 		}
 		
 		if (!is_rebooting)
