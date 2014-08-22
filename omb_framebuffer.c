@@ -4,6 +4,7 @@
 #include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -293,7 +294,6 @@ void omb_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color)
 {
 	int i, j, z = 0;
 	long int location = 0;
-	unsigned char alpha = ALPHA(color);
 	unsigned char red = RED(color);
 	unsigned char green = GREEN(color);
 	unsigned char blue = BLUE(color);

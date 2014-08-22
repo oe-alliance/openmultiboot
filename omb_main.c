@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <linux/input.h>
+#include <unistd.h>
 
 #include "omb_common.h"
 #include "omb_log.h"
 #include "omb_freetype.h"
 #include "omb_framebuffer.h"
+#include "omb_lcd.h"
+#include "omb_input.h"
 #include "omb_utils.h"
 #include "omb_menu.h"
 
@@ -33,6 +36,28 @@ void omb_draw_header()
 		OMB_TEXT_ALIGN_LEFT);
 }
 
+void omb_draw_lcd()
+{
+	char tmp[255];
+	sprintf(tmp, "%s %s", OMB_DISPLAY_NAME, OMB_APP_VERION);
+	
+	omb_render_lcd_symbol(OMB_SYMBOL_LOGO,
+		OMB_LCD_LOGO_X,
+		OMB_LCD_LOGO_Y,
+		0,
+		OMB_LCD_LOGO_COLOR,
+		OMB_LCD_LOGO_SIZE,
+		OMB_TEXT_ALIGN_LEFT);
+		
+	omb_render_lcd_text(tmp,
+		OMB_LCD_TITLE_X,
+		OMB_LCD_TITLE_Y,
+		0,
+		OMB_LCD_TITLE_COLOR,
+		OMB_LCD_TITLE_SIZE,
+		OMB_TEXT_ALIGN_LEFT);
+}
+
 void omb_draw_timer()
 {
 	if (omb_timer_enabled) {
@@ -51,10 +76,15 @@ void omb_draw_timer()
 void omb_refresh_gui()
 {
 	omb_clear_screen();
+	omb_lcd_clear();
+	
+	omb_draw_lcd();
 	omb_draw_header();
 	omb_draw_timer();
 	omb_menu_render();
+	
 	omb_blit();
+	omb_lcd_update();
 }
 
 int omb_show_menu()
@@ -69,6 +99,8 @@ int omb_show_menu()
 	
 	if (omb_input_open() == OMB_ERROR)
 		return OMB_ERROR;
+	
+	omb_lcd_open();
 	
 	omb_timer_enabled = 1;
 	omb_current_timer = OMB_DEFAULT_TIMER;
@@ -121,9 +153,15 @@ int omb_show_menu()
 	omb_clear_screen();
 	omb_blit();
 	
+	omb_lcd_clear();
+	omb_lcd_update();
+	
+	omb_lcd_close();
 	omb_input_close();
 	omb_deinit_freetype();
 	omb_close_framebuffer();
+	
+	return OMB_SUCCESS;
 }
 
 int main(int argc, char *argv[]) 
@@ -138,6 +176,7 @@ int main(int argc, char *argv[])
 		omb_device_item *items = NULL;
 		char *selected = NULL;
 		if (omb_utils_find_and_mount() == OMB_SUCCESS) {
+			omb_log(LOG_DEBUG, "A %d", items == NULL);
 			items = omb_utils_get_images();
 			omb_menu_set(items);
 			selected = omb_utils_read(OMB_SETTINGS_SELECTED);
@@ -148,7 +187,7 @@ int main(int argc, char *argv[])
 			omb_menu_set_selected(selected);
 			item = omb_menu_get_selected();
 		}
-		
+
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
 		if (!force && items) {
 			omb_utils_load_modules(item);

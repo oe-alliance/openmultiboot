@@ -8,6 +8,10 @@
 #define OMB_FB_DEVICE "/dev/fb/0"
 #define OMB_INPUT_DEVICE "/dev/input/event0"
 #define OMB_VIDEO_DEVICE "/dev/dvb/adapter0/video0"
+#define OMB_LCD_DEVICE "/dev/dbox/lcd0"
+#define OMB_LCD_XRES "/proc/stb/lcd/xres"
+#define OMB_LCD_YRES "/proc/stb/lcd/yres"
+#define OMB_LCD_BPP "/proc/stb/lcd/bpp"
 #define OMB_KERNEL_MTD "/dev/mtd2"
 #define OMB_MAIN_DIR "/tmp/open-multiboot"
 #define OMB_DATA_DIR "open-multiboot"
@@ -42,6 +46,20 @@
 #define OMB_MENU_MAX_ITEMS 5
 #define OMB_MENU_ARROWS_SIZE 120
 #define OMB_MENU_ARROWS_COLOR 0xFA202020
+
+#define OMB_LCD_LOGO_X 40
+#define OMB_LCD_LOGO_Y 40
+#define OMB_LCD_LOGO_SIZE 40
+#define OMB_LCD_LOGO_COLOR 0xffffffff
+
+#define OMB_LCD_TITLE_X 120
+#define OMB_LCD_TITLE_Y 76
+#define OMB_LCD_TITLE_SIZE 20
+#define OMB_LCD_TITLE_COLOR 0xffffffff
+
+#define OMB_LCD_SELECTION_Y 180
+#define OMB_LCD_SELECTION_SIZE 30
+#define OMB_LCD_SELECTION_COLOR 0xffffffff
 
 #define OMB_HEADER_X 20
 #define OMB_HEADER_Y 40

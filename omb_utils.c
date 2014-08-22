@@ -39,7 +39,7 @@ void omb_utils_create_dir_tree()
 	
 	sprintf(tmp, "%s/.kernels", OMB_MAIN_DIR);
 	if (!omb_utils_dir_exists(tmp))
-			mkdir(tmp, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+		mkdir(tmp, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 }
 
 int omb_utils_mount(const char* device, const char* mountpoint)
@@ -81,7 +81,6 @@ void omb_utils_umount_media()
 {
 	FILE* mtab = NULL;
 	struct mntent* part = NULL;
-	int is_mounted = 0;
 	
 	if ((mtab = setmntent("/etc/mtab", "r")) != NULL) {
 		while ((part = getmntent(mtab)) != NULL) {
@@ -107,15 +106,14 @@ int omb_utils_find_and_mount()
 			if (strlen(dir->d_name) == 4 && memcmp(dir->d_name, "sd", 2) == 0) {
 				char device[255];
 				sprintf(device, "%s/%s", OMB_DEVICES_DIR, dir->d_name);
+				omb_log(LOG_DEBUG, "check device %s", device);
 				
-				if (omb_utils_is_mounted(OMB_MAIN_DIR))
-					if (omb_utils_umount(OMB_MAIN_DIR) == OMB_ERROR)
-						omb_log(LOG_ERROR, "cannot umount %s", OMB_MAIN_DIR);
-					
+				omb_utils_umount(OMB_MAIN_DIR); // just force umount without check
 				if (omb_utils_mount(device, OMB_MAIN_DIR) == OMB_SUCCESS) {
 					char datadir[255];
 					sprintf(datadir, "%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR);
 					if (omb_utils_dir_exists(datadir)) {
+						omb_log(LOG_DEBUG, "found data on device %s", device);
 						closedir(fd);
 						return OMB_SUCCESS;
 					}

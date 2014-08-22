@@ -5,7 +5,9 @@
 #include "omb_log.h"
 #include "omb_freetype.h"
 #include "omb_framebuffer.h"
+#include "omb_lcd.h"
 #include "omb_utils.h"
+#include "omb_menu.h"
 
 static omb_device_item *omb_device_items = NULL;
 static int omb_menu_offset = 0;
@@ -73,7 +75,6 @@ void omb_menu_set_selected(const char *identifier)
 void omb_menu_next()
 {
 	int position = omb_menu_selected;
-	omb_device_item *item = omb_menu_get(position);
 	position++;
 	if (position >= omb_menu_count())
 		position = omb_menu_count() - 1;
@@ -88,7 +89,6 @@ void omb_menu_next()
 void omb_menu_prev()
 {
 	int position = omb_menu_selected;
-	omb_device_item *item = omb_menu_get(position);
 	position--;
 	if (position < 0)
 		position = 0;
@@ -125,8 +125,17 @@ void omb_menu_render()
 	for (i = omb_menu_offset; i < visible_count + omb_menu_offset; i++) {
 		omb_device_item *item = omb_menu_get(i);
 		int color = OMB_MENU_ITEM_COLOR;
-		if (i == omb_menu_selected)
+		if (i == omb_menu_selected) {
+			omb_render_lcd_text(item->label,
+				0,
+				OMB_LCD_SELECTION_Y,
+				omb_lcd_get_width(),
+				OMB_LCD_SELECTION_COLOR,
+				OMB_LCD_SELECTION_SIZE,
+				OMB_TEXT_ALIGN_CENTER);
+			
 			color = OMB_MENU_ITEM_SELECTED_COLOR;
+		}
 		
 		omb_draw_rounded_rect(box_x + OMB_MENU_BOX_MARGIN,
 			box_y + OMB_MENU_BOX_MARGIN,
