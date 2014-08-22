@@ -35,7 +35,7 @@ int omb_input_get_code()
 		
 		if (event.code == omb_input_last_event_code) {
 			omb_input_last_event_count++;
-			if (omb_input_last_event_count < 3)
+			if (omb_input_last_event_count < 6)
 				return -1;
 		}
 

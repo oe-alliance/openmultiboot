@@ -1,0 +1,373 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <dirent.h>
+#include <string.h>
+#include <sys/mount.h>
+#include <sys/stat.h>
+#include <mntent.h>
+
+#include "omb_common.h"
+#include "omb_log.h"
+#include "omb_utils.h"
+
+#define OMB_FS_MAX 3
+static const char *omb_utils_fs_types[OMB_FS_MAX] = { "ext4", "ext3" };
+
+int omb_utils_dir_exists(const char* folder)
+{
+	DIR *fd = opendir(folder);
+	if (fd) {
+		closedir(fd);
+		return 1;
+	}
+	return 0;
+}
+
+int omb_utils_file_exists(const char* filename)
+{
+	struct stat st;
+	int result = stat(filename, &st);
+	return result == 0;
+}
+
+void omb_utils_create_dir_tree()
+{
+	char tmp[255];
+	if (!omb_utils_dir_exists(OMB_MAIN_DIR))
+		mkdir(OMB_MAIN_DIR, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+	
+	sprintf(tmp, "%s/.kernels", OMB_MAIN_DIR);
+	if (!omb_utils_dir_exists(tmp))
+			mkdir(tmp, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+}
+
+int omb_utils_mount(const char* device, const char* mountpoint)
+{
+	int i;
+	for (i = 0; i < OMB_FS_MAX; i++)
+		if (mount(device, mountpoint, omb_utils_fs_types[i], 0, NULL) == 0)
+			return OMB_SUCCESS;
+	
+	return OMB_ERROR;
+}
+
+int omb_utils_is_mounted(const char *mountpoint)
+{
+	FILE* mtab = NULL;
+	struct mntent* part = NULL;
+	int is_mounted = 0;
+	
+	if ((mtab = setmntent("/etc/mtab", "r")) != NULL) {
+		while ((part = getmntent(mtab)) != NULL) {
+			if ((part->mnt_dir != NULL)
+				&& (strcmp(part->mnt_dir, mountpoint)) == 0) {
+					
+				is_mounted = 1;
+			}
+		}
+		endmntent(mtab);
+	}
+	
+	return is_mounted;
+}
+
+int omb_utils_umount(const char* mountpoint)
+{
+	return umount(mountpoint) == 0 ? OMB_SUCCESS : OMB_ERROR;
+}
+
+int omb_utils_find_and_mount()
+{
+	struct dirent *dir;
+	DIR *fd = opendir(OMB_DEVICES_DIR);
+	if (fd) {
+		omb_utils_create_dir_tree();
+		
+		while ((dir = readdir(fd)) != NULL) {
+			if (strlen(dir->d_name) == 4 && memcmp(dir->d_name, "sd", 2) == 0) {
+				char device[255];
+				sprintf(device, "%s/%s", OMB_DEVICES_DIR, dir->d_name);
+				
+				if (omb_utils_is_mounted(OMB_MAIN_DIR))
+					if (omb_utils_umount(OMB_MAIN_DIR) == OMB_ERROR)
+						omb_log(LOG_ERROR, "cannot umount %s", OMB_MAIN_DIR);
+					
+				if (omb_utils_mount(device, OMB_MAIN_DIR) == OMB_SUCCESS) {
+					char datadir[255];
+					sprintf(datadir, "%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR);
+					if (omb_utils_dir_exists(datadir)) {
+						closedir(fd);
+						return OMB_SUCCESS;
+					}
+					
+					if (omb_utils_umount(OMB_MAIN_DIR) == OMB_ERROR)
+						omb_log(LOG_ERROR, "cannot umount %s", OMB_MAIN_DIR);
+				}
+			}
+		}
+		
+		closedir(fd);
+	}
+	return OMB_ERROR;
+}
+
+omb_device_item *omb_utils_read_info(const char* base_dir, const char *identifier)
+{
+	char image_info[255];
+	sprintf(image_info, "%s/etc/image-version", base_dir);
+	FILE *image_info_fd = fopen(image_info, "r");
+	if (image_info_fd) {
+		char line[1024];
+		char version[255];
+		char name[255];
+		version[0] = name[0] = '\0';
+		while (fgets(line, 1024, image_info_fd)) {
+			strtok(line, "\n");
+			if (strlen(line) > 8) {
+				if (memcmp(line, "version=", 8) == 0) {
+					strcpy(version, line + 8);
+				}
+				else if (memcmp(line, "creator=", 8) == 0) {
+					strcpy(name, line + 8);
+				}
+			}
+		}
+		fclose(image_info_fd);
+		
+		if (strlen(name) > 0) {
+			omb_device_item *item = malloc(sizeof(omb_device_item));
+			item->label = malloc(strlen(name) + strlen(version) + 4);
+			item->directory = malloc(strlen(base_dir) + 1);
+			item->identifier = malloc(strlen(identifier) + 1);
+			item->next = NULL;
+			sprintf(item->label, "%s - %s", name, version);
+			strcpy(item->directory, base_dir);
+			strcpy(item->identifier, identifier);
+			return item;
+		}
+	}
+	return NULL;
+}
+
+omb_device_item *omb_utils_get_images()
+{
+	struct dirent *dir;
+	char datadir[255];
+	DIR *fd;
+	
+	omb_device_item *first = NULL;
+	omb_device_item *last = NULL;
+	
+	omb_log(LOG_DEBUG, "discover images");
+	
+	omb_device_item *item = omb_utils_read_info("", "flash");
+	if (item != NULL) {
+		if (first == NULL)
+			first = item;
+		if (last != NULL)
+			last->next = item;
+		last = item;
+	}
+	
+	sprintf(datadir, "%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR);
+	fd = opendir(datadir);
+	if (fd) {
+		while ((dir = readdir(fd)) != NULL) {
+			if (strlen(dir->d_name) > 0 && dir->d_name[0] != '.') {
+				char base_dir[255];
+				sprintf(base_dir, "%s/%s", datadir, dir->d_name);
+				omb_device_item *item = omb_utils_read_info(base_dir, dir->d_name);
+				if (item != NULL) {
+					if (first == NULL)
+						first = item;
+					if (last != NULL)
+						last->next = item;
+					last = item;
+				}
+			}
+		}
+	}
+	return first;
+}
+
+void omb_utils_free_items(omb_device_item *items)
+{
+	omb_device_item *tmp = items;
+	while (tmp) {
+		omb_device_item *tmp2 = tmp;
+		tmp = tmp->next;
+			
+		free(tmp2->label);
+		free(tmp2->directory);
+		free(tmp2->identifier);
+		free(tmp2);
+	}
+}
+
+void omb_utils_update_background(omb_device_item *item)
+{
+	char tmp[255];
+	sprintf(tmp, "%s %s/usr/share/bootlogo.mvi", OMB_SHOWIFRAME_BIN, item->directory);
+	system(tmp);
+}
+
+void omb_utils_save(const char* key, const char* value)
+{
+	char tmp[255];
+	sprintf(tmp, "%s/%s/.%s", OMB_MAIN_DIR, OMB_DATA_DIR, key);
+	FILE *fd = fopen(tmp, "w");
+	if (fd) {
+		fwrite(value, 1, strlen(value), fd);
+		fclose(fd);
+	}
+}
+
+char* omb_utils_read(const char *key)
+{
+	char tmp[255];
+	sprintf(tmp, "%s/%s/.%s", OMB_MAIN_DIR, OMB_DATA_DIR, key);
+	FILE *fd = fopen(tmp, "r");
+	if (fd) {
+		char line[1024];
+		if (fgets(line, 1024, fd)) {
+			strtok(line, "\n");
+			char *ret = malloc(strlen(line) + 1);
+			strcpy(ret, line);
+			return ret;
+		}
+		fclose(fd);
+	}
+	return NULL;
+}
+
+void omb_utils_save_int(const char* key, int value)
+{
+	char tmp[255];
+	sprintf(tmp, "%d", value);
+	omb_utils_save(key, tmp);
+}
+
+int omb_utils_read_int(const char *key)
+{
+	char *tmp = omb_utils_read(key);
+	if (tmp) {
+		int ret = atoi(tmp);
+		free(tmp);
+		return ret;
+	}
+	return 0;
+}
+
+void omb_utils_init_system()
+{
+	omb_log(LOG_DEBUG, "mount /proc");
+	if (!omb_utils_is_mounted("/proc"))
+		if (mount("proc", "/proc", "proc", 0, NULL) != 0)
+			omb_log(LOG_ERROR, "cannot mount /proc");
+	
+	omb_log(LOG_DEBUG, "mount /sys");
+	if (!omb_utils_is_mounted("/sys"))
+		if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0)
+			omb_log(LOG_ERROR, "cannot mount /sys");
+	
+	omb_log(LOG_DEBUG, "run mdev");
+	system(OMB_MDEV_BIN);
+	
+	// we really need this sleep?? :(
+	sleep(2);
+}
+
+void omb_utils_load_modules(omb_device_item *item)
+{
+	int i;
+	
+	omb_log(LOG_DEBUG, "load modules");
+	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+		system(OMB_MODUTILS_BIN);
+	}
+	else {
+		char dev[255];
+		char proc[255];
+		char sys[255];
+		char cmd[512];
+		sprintf(dev, "%s/%s/%s/dev", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(proc, "%s/%s/%s/proc", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(sys, "%s/%s/%s/sys", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		if (!omb_utils_is_mounted(dev))
+			if (mount("/dev", dev, NULL, MS_BIND, NULL) != 0)
+				omb_log(LOG_ERROR, "cannot bind /dev");
+		
+		if (!omb_utils_is_mounted(proc))
+			if (mount("/proc", proc, NULL, MS_BIND, NULL) != 0)
+				omb_log(LOG_ERROR, "cannot bind /proc");
+		
+		if (!omb_utils_is_mounted(sys))
+			if (mount("/dev", sys, NULL, MS_BIND, NULL) != 0)
+				omb_log(LOG_ERROR, "cannot bind /sys");
+		
+		sprintf(cmd, "%s %s/%s/%s %s", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_MODUTILS_BIN);
+		system(cmd);
+	}
+	
+	for (i = 0; i < 500; i++) {
+		if (omb_utils_file_exists(OMB_VIDEO_DEVICE))
+			break;
+		
+		usleep(10000);
+	}
+}
+
+void omb_utils_backup_kernel(omb_device_item *item)
+{
+	char cmd[512];
+
+	if (!item)
+		return;
+	
+	omb_log(LOG_DEBUG, "backup kernel for image '%s'", item->identifier);
+	sprintf(cmd, "%s %s -f %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	system(cmd);
+}
+
+void omb_utils_restore_kernel(omb_device_item *item)
+{
+	char cmd[512];
+	char filename[255];
+
+	if (!item)
+		return;
+	
+	sprintf(filename, "%s/%s/.kernels/%s.bin", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	if (omb_utils_file_exists(filename)) {
+		omb_log(LOG_DEBUG, "erasing MTD");
+		sprintf(cmd, "%s %s 0 0", OMB_FLASHERASE_BIN, OMB_KERNEL_MTD);
+		system(cmd);
+	
+		omb_log(LOG_DEBUG, "restore kernel for image '%s'", item->identifier);
+		sprintf(cmd, "%s -pm %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+	}
+}
+
+void omb_utils_reboot()
+{
+	omb_utils_sysvinit(NULL, "6");
+}
+
+void omb_utils_sysvinit(omb_device_item *item, const char *args)
+{
+	char cmd[255];
+	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+		if (args)
+			sprintf(cmd, "%s %s", OMB_SYSVINIT_BIN, args);
+		else
+			strcpy(cmd, OMB_SYSVINIT_BIN);
+	}
+	else {
+		if (args)
+			sprintf(cmd, "%s %s/%s/%s %s %s", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_SYSVINIT_BIN, args);
+		else
+			sprintf(cmd, "%s %s/%s/%s %s", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_SYSVINIT_BIN);
+	}
+	omb_log(LOG_DEBUG, "%s", cmd);
+}

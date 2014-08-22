@@ -8,8 +8,9 @@
 #define OMB_TEXT_ALIGN_CENTER 1
 #define OMB_TEXT_ALIGN_RIGHT 2
 
-#define OMB_SYMBOL_ARROW_UP 0x20
-#define OMB_SYMBOL_ARROW_DOWN 0x21
+#define OMB_SYMBOL_LOGO 0x20
+#define OMB_SYMBOL_ARROW_UP 0x21
+#define OMB_SYMBOL_ARROW_DOWN 0x22
 
 int omb_init_freetype();
 void omb_deinit_freetype();

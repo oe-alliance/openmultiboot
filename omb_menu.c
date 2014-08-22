@@ -5,38 +5,20 @@
 #include "omb_log.h"
 #include "omb_freetype.h"
 #include "omb_framebuffer.h"
+#include "omb_utils.h"
 
-typedef struct omb_menu_item
-{
-	char *label;
-	int selected;
-	struct omb_menu_item *next;
-} omb_menu_item;
-
-static omb_menu_item *omb_menu_items = NULL;
+static omb_device_item *omb_device_items = NULL;
 static int omb_menu_offset = 0;
+static int omb_menu_selected = 0;
 
-void omb_menu_init()
+void omb_menu_set(omb_device_item *items)
 {
-	omb_menu_items = NULL;
+	omb_device_items = items;
 }
 
-void omb_menu_deinit()
+omb_device_item *omb_menu_get_last()
 {
-	omb_menu_item *tmp = omb_menu_items;
-	while (tmp) {
-		omb_menu_item *tmp2 = tmp;
-		tmp = tmp->next;
-			
-		free(tmp2->label);
-		free(tmp2);
-	}
-	omb_menu_items = NULL;
-}
-
-omb_menu_item *omb_menu_get_last()
-{
-	omb_menu_item *tmp = omb_menu_items;
+	omb_device_item *tmp = omb_device_items;
 	while (tmp) {
 		if (!tmp->next)
 			return tmp;
@@ -49,7 +31,7 @@ omb_menu_item *omb_menu_get_last()
 int omb_menu_count()
 {
 	int count = 0;
-	omb_menu_item *tmp = omb_menu_items;
+	omb_device_item *tmp = omb_device_items;
 	while (tmp) {
 		count++;
 		tmp = tmp->next;
@@ -57,8 +39,8 @@ int omb_menu_count()
 	return count;
 }
 
-omb_menu_item *omb_menu_get(int position) {
-	omb_menu_item *tmp = omb_menu_items;
+omb_device_item *omb_menu_get(int position) {
+	omb_device_item *tmp = omb_device_items;
 	int count = 0;
 	while (tmp) {
 		if (count == position)
@@ -69,44 +51,33 @@ omb_menu_item *omb_menu_get(int position) {
 	return NULL;
 }
 
-int omb_menu_get_selected_position() {
-	omb_menu_item *tmp = omb_menu_items;
-	int count = 0;
-	while (tmp) {
-		if (tmp->selected)
-			return count;
-		tmp = tmp->next;
-		count++;
-	}
-	return 0;
+omb_device_item *omb_menu_get_selected()
+{
+	return omb_menu_get(omb_menu_selected);
 }
 
-void omb_menu_add(char *label, int selected)
+void omb_menu_set_selected(const char *identifier)
 {
-	omb_menu_item *item = malloc(sizeof(omb_menu_item));
-	omb_menu_item *last_item = omb_menu_get_last();
-	item->label = malloc(strlen(label) + 1);
-	strcpy(item->label, label);
-	item->selected = selected;
-	item->next = NULL;
-	if (last_item) {
-		last_item->next = item;
-	}
-	else {
-		omb_menu_items = item;
+	omb_device_item *tmp = omb_device_items;
+	int count = 0;
+	while (tmp) {
+		if (strcmp(tmp->identifier, identifier) == 0) {
+			omb_menu_selected = count;
+			break;
+		}
+		tmp = tmp->next;
+		count++;
 	}
 }
 
 void omb_menu_next()
 {
-	int position = omb_menu_get_selected_position();
-	omb_menu_item *item = omb_menu_get(position);
-	item->selected = 0;
+	int position = omb_menu_selected;
+	omb_device_item *item = omb_menu_get(position);
 	position++;
 	if (position >= omb_menu_count())
 		position = omb_menu_count() - 1;
-	item = omb_menu_get(position);
-	item->selected = 1;
+	omb_menu_selected = position;
 	
 	if (position >= omb_menu_offset + OMB_MENU_MAX_ITEMS)
 		omb_menu_offset = position - OMB_MENU_MAX_ITEMS + 1;
@@ -116,14 +87,12 @@ void omb_menu_next()
 
 void omb_menu_prev()
 {
-	int position = omb_menu_get_selected_position();
-	omb_menu_item *item = omb_menu_get(position);
-	item->selected = 0;
+	int position = omb_menu_selected;
+	omb_device_item *item = omb_menu_get(position);
 	position--;
 	if (position < 0)
 		position = 0;
-	item = omb_menu_get(position);
-	item->selected = 1;
+	omb_menu_selected = position;
 	
 	if (position < omb_menu_offset)
 		omb_menu_offset = position;
@@ -146,7 +115,7 @@ void omb_menu_render()
 	if (omb_menu_offset > 0) {
 		omb_render_symbol(OMB_SYMBOL_ARROW_UP,
 			box_x + OMB_MENU_BOX_MARGIN,
-			box_y - 50,
+			box_y - 70,
 			OMB_MENU_ITEM_WIDTH,
 			OMB_MENU_ARROWS_COLOR,
 			OMB_MENU_ARROWS_SIZE,
@@ -154,9 +123,9 @@ void omb_menu_render()
 	}
 		
 	for (i = omb_menu_offset; i < visible_count + omb_menu_offset; i++) {
-		omb_menu_item *item = omb_menu_get(i);
+		omb_device_item *item = omb_menu_get(i);
 		int color = OMB_MENU_ITEM_COLOR;
-		if (item->selected)
+		if (i == omb_menu_selected)
 			color = OMB_MENU_ITEM_SELECTED_COLOR;
 		
 		omb_draw_rounded_rect(box_x + OMB_MENU_BOX_MARGIN,
