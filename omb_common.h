@@ -13,13 +13,14 @@
 #define OMB_LCD_YRES "/proc/stb/lcd/yres"
 #define OMB_LCD_BPP "/proc/stb/lcd/bpp"
 #define OMB_KERNEL_MTD "/dev/mtd2"
-#define OMB_MAIN_DIR "/tmp/open-multiboot"
+#define OMB_MAIN_DIR "/omb"
 #define OMB_DATA_DIR "open-multiboot"
+#define OMB_PLUGIN_DIR "/usr/lib/enigma2/python/Plugins/Extensions/OpenMultiboot"
 #define OMB_SCREEN_WIDTH 1280
 #define OMB_SCREEN_HEIGHT 720
 #define OMB_SCREEN_BPP 32
 #define OMB_APP_NAME "open-multiboot"
-#define OMB_APP_VERION "0.1"
+#define OMB_APP_VERION "1.0"
 #define OMB_DISPLAY_NAME "openMultiboot"
 #define OMB_DEFAULT_TIMER 5
 #define OMB_SHOWIFRAME_BIN "/usr/bin/showiframe"
@@ -31,6 +32,8 @@
 #define OMB_NANDDUMP_BIN "/usr/sbin/nanddump"
 #define OMB_NANDWRITE_BIN "/usr/sbin/nandwrite"
 #define OMB_FLASHERASE_BIN "/usr/sbin/flash_erase"
+#define OMB_PYTHON_BIN "/usr/bin/python"
+#define OMB_BRANDING_HELPER_BIN "/sbin/open-multiboot-branding-helper.py"
 
 #define OMB_MENU_ITEM_RADIUS 10
 #define OMB_MENU_ITEM_HEIGHT 80

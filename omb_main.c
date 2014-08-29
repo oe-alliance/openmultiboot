@@ -188,10 +188,10 @@ int main(int argc, char *argv[])
 			item = omb_menu_get_selected();
 		}
 
+		omb_utils_load_modules(item);
+			
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
 		if (!force && items) {
-			omb_utils_load_modules(item);
-			
 			omb_utils_update_background(item);
 			omb_utils_backup_kernel(item);
 	
@@ -200,8 +200,6 @@ int main(int argc, char *argv[])
 		else {
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 0);
 		}
-		
-		//omb_utils_umount_media();
 		
 		item = omb_menu_get_selected();
 		if (item && selected && strcmp(selected, item->identifier) != 0) {
@@ -212,8 +210,11 @@ int main(int argc, char *argv[])
 			is_rebooting = 1;
 		}
 		
-		if (!is_rebooting)
+		if (!is_rebooting) {
+			if (item != NULL && strcmp(item->identifier, "flash") != 0)
+				omb_utils_remount_media(item);
 			omb_utils_sysvinit(item, NULL);
+		}
 	
 		if (items) omb_utils_free_items(items);
 		if (selected) free(selected);

@@ -10,6 +10,7 @@
 #include "omb_common.h"
 #include "omb_log.h"
 #include "omb_utils.h"
+#include "omb_branding.h"
 
 #define OMB_FS_MAX 3
 static const char *omb_utils_fs_types[OMB_FS_MAX] = { "ext4", "ext3" };
@@ -77,22 +78,41 @@ int omb_utils_umount(const char* mountpoint)
 	return umount(mountpoint) == 0 ? OMB_SUCCESS : OMB_ERROR;
 }
 
-void omb_utils_umount_media()
+void omb_utils_remount_media(omb_device_item *item)
 {
 	FILE* mtab = NULL;
 	struct mntent* part = NULL;
-	
+	char media[255];
+	sprintf(media, "%s/%s/%s/media", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+
+	omb_log(LOG_DEBUG, "remount /media into %s", media);
+	if (!omb_utils_is_mounted(media))
+		if (mount("tmpfs", media, "tmpfs", 0, "size=64k") != 0)
+			omb_log(LOG_ERROR, "cannot mount %s", media);
+			
 	if ((mtab = setmntent("/etc/mtab", "r")) != NULL) {
 		while ((part = getmntent(mtab)) != NULL) {
 			if (part->mnt_dir != NULL
 				&& strlen(part->mnt_dir) > 6
 				&& memcmp(part->mnt_dir, "/media", 6) == 0) {
+					char tmp[255];
+					sprintf(tmp, "%s/%s", media, part->mnt_dir);
+					
 					if (omb_utils_umount(part->mnt_dir) == OMB_ERROR)
 						omb_log(LOG_WARNING, "cannot umount %s", part->mnt_dir);
+					
+					if (!omb_utils_dir_exists(tmp))
+						mkdir(tmp, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+					if (omb_utils_mount(part->mnt_fsname, tmp) == OMB_ERROR)
+						omb_log(LOG_WARNING, "cannot mount %s", tmp);
 				}
 		}
 		endmntent(mtab);
 	}
+
+	if (omb_utils_umount("/media") == OMB_ERROR)
+		omb_log(LOG_WARNING, "cannot umount /media");
 }
 
 int omb_utils_find_and_mount()
@@ -129,44 +149,6 @@ int omb_utils_find_and_mount()
 	return OMB_ERROR;
 }
 
-omb_device_item *omb_utils_read_info(const char* base_dir, const char *identifier)
-{
-	char image_info[255];
-	sprintf(image_info, "%s/etc/image-version", base_dir);
-	FILE *image_info_fd = fopen(image_info, "r");
-	if (image_info_fd) {
-		char line[1024];
-		char version[255];
-		char name[255];
-		version[0] = name[0] = '\0';
-		while (fgets(line, 1024, image_info_fd)) {
-			strtok(line, "\n");
-			if (strlen(line) > 8) {
-				if (memcmp(line, "version=", 8) == 0) {
-					strcpy(version, line + 8);
-				}
-				else if (memcmp(line, "creator=", 8) == 0) {
-					strcpy(name, line + 8);
-				}
-			}
-		}
-		fclose(image_info_fd);
-		
-		if (strlen(name) > 0) {
-			omb_device_item *item = malloc(sizeof(omb_device_item));
-			item->label = malloc(strlen(name) + strlen(version) + 2);
-			item->directory = malloc(strlen(base_dir) + 1);
-			item->identifier = malloc(strlen(identifier) + 1);
-			item->next = NULL;
-			sprintf(item->label, "%s %s", name, version);
-			strcpy(item->directory, base_dir);
-			strcpy(item->identifier, identifier);
-			return item;
-		}
-	}
-	return NULL;
-}
-
 omb_device_item *omb_utils_get_images()
 {
 	struct dirent *dir;
@@ -178,7 +160,7 @@ omb_device_item *omb_utils_get_images()
 	
 	omb_log(LOG_DEBUG, "discover images");
 	
-	omb_device_item *item = omb_utils_read_info("", "flash");
+	omb_device_item *item = omb_branding_read_info("", "flash");
 	if (item != NULL) {
 		if (first == NULL)
 			first = item;
@@ -194,7 +176,7 @@ omb_device_item *omb_utils_get_images()
 			if (strlen(dir->d_name) > 0 && dir->d_name[0] != '.') {
 				char base_dir[255];
 				sprintf(base_dir, "%s/%s", datadir, dir->d_name);
-				omb_device_item *item = omb_utils_read_info(base_dir, dir->d_name);
+				omb_device_item *item = omb_branding_read_info(base_dir, dir->d_name);
 				if (item != NULL) {
 					if (first == NULL)
 						first = item;
@@ -313,10 +295,15 @@ void omb_utils_load_modules(omb_device_item *item)
 		char dev[255];
 		char proc[255];
 		char sys[255];
+		char omb[255];
+		char omb_plugin[255];
 		char cmd[512];
 		sprintf(dev, "%s/%s/%s/dev", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 		sprintf(proc, "%s/%s/%s/proc", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 		sprintf(sys, "%s/%s/%s/sys", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(omb, "%s/%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_MAIN_DIR);
+		sprintf(omb_plugin, "%s/%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_PLUGIN_DIR);
+		
 		if (!omb_utils_is_mounted(dev))
 			if (mount("/dev", dev, NULL, MS_BIND, NULL) != 0)
 				omb_log(LOG_ERROR, "cannot bind /dev");
@@ -326,8 +313,22 @@ void omb_utils_load_modules(omb_device_item *item)
 				omb_log(LOG_ERROR, "cannot bind /proc");
 		
 		if (!omb_utils_is_mounted(sys))
-			if (mount("/dev", sys, NULL, MS_BIND, NULL) != 0)
+			if (mount("/sys", sys, NULL, MS_BIND, NULL) != 0)
 				omb_log(LOG_ERROR, "cannot bind /sys");
+		
+		if (!omb_utils_dir_exists(omb))
+			mkdir(omb, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+		if (!omb_utils_is_mounted(omb))
+			if (mount(OMB_MAIN_DIR, omb, NULL, MS_BIND, NULL) != 0)
+				omb_log(LOG_ERROR, "cannot bind %s", OMB_MAIN_DIR);
+				
+		if (!omb_utils_dir_exists(omb_plugin))
+			mkdir(omb_plugin, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+		if (!omb_utils_is_mounted(omb_plugin))
+			if (mount(OMB_PLUGIN_DIR, omb_plugin, NULL, MS_BIND, NULL) != 0)
+				omb_log(LOG_ERROR, "cannot bind %s", OMB_PLUGIN_DIR);
 		
 		sprintf(cmd, "%s %s/%s/%s %s", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_MODUTILS_BIN);
 		system(cmd);

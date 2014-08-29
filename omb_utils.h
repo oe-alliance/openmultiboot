@@ -28,6 +28,8 @@ void omb_utils_load_modules(omb_device_item *item);
 void omb_utils_backup_kernel(omb_device_item *item);
 void omb_utils_restore_kernel(omb_device_item *item);
 
+void omb_utils_remount_media(omb_device_item *item);
+
 void omb_utils_reboot();
 void omb_utils_sysvinit(omb_device_item *item, const char *args);
 
