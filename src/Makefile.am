@@ -8,4 +8,4 @@ open_multiboot_SOURCES = omb_branding.c \
 	omb_menu.c \
 	omb_utils.c
 
-bin_PROGRAMS = open_multiboot
+sbin_PROGRAMS = open_multiboot
