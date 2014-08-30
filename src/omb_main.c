@@ -198,7 +198,6 @@ int main(int argc, char *argv[])
 		omb_device_item *items = NULL;
 		char *selected = NULL;
 		if (omb_utils_find_and_mount() == OMB_SUCCESS) {
-			omb_log(LOG_DEBUG, "A %d", items == NULL);
 			items = omb_utils_get_images();
 			omb_menu_set(items);
 			selected = omb_utils_read(OMB_SETTINGS_SELECTED);
