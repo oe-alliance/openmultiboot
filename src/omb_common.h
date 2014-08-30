@@ -34,7 +34,7 @@
 #define OMB_LCD_XRES "/proc/stb/lcd/xres"
 #define OMB_LCD_YRES "/proc/stb/lcd/yres"
 #define OMB_LCD_BPP "/proc/stb/lcd/bpp"
-#define OMB_KERNEL_MTD "/dev/mtd2"
+//#define OMB_KERNEL_MTD "/dev/mtd2"
 #define OMB_MAIN_DIR "/omb"
 #define OMB_DATA_DIR "open-multiboot"
 #define OMB_PLUGIN_DIR "/usr/lib/enigma2/python/Plugins/Extensions/OpenMultiboot"
