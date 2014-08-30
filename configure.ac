@@ -11,6 +11,8 @@ AC_CONFIG_HEADERS([src/config.h])
 # Checks for programs.
 AC_PROG_CC
 
+AC_PROG_LIBTOOL
+
 RFX_CHECK_FREETYPE
 AC_CHECK_LIB([m], [acos])
 
