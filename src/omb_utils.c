@@ -105,7 +105,9 @@ void omb_utils_remount_media(omb_device_item *item)
 	FILE* mtab = NULL;
 	struct mntent* part = NULL;
 	char media[255];
+	char base[255];
 	sprintf(media, "%s/%s/%s/media", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	sprintf(base, "%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 
 	omb_log(LOG_DEBUG, "remount /media into %s", media);
 	if (!omb_utils_is_mounted(media))
@@ -118,7 +120,7 @@ void omb_utils_remount_media(omb_device_item *item)
 				&& strlen(part->mnt_dir) > 6
 				&& memcmp(part->mnt_dir, "/media", 6) == 0) {
 					char tmp[255];
-					sprintf(tmp, "%s/%s", media, part->mnt_dir);
+					sprintf(tmp, "%s/%s", base, part->mnt_dir);
 					
 					if (omb_utils_umount(part->mnt_dir) == OMB_ERROR)
 						omb_log(LOG_WARNING, "cannot umount %s", part->mnt_dir);
