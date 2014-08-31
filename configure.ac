@@ -10,7 +10,7 @@ AC_CONFIG_HEADERS([src/config.h])
 # Checks for programs.
 AC_PROG_CC
 
-RFX_CHECK_FREETYPE
+#RFX_CHECK_FREETYPE
 AC_CHECK_LIB([m], [acos])
 
 # Checks for header files.
