@@ -1,4 +1,3 @@
-
 AC_PREREQ([2.69])
 AC_INIT(open-multiboot, 0.1)
 AM_INIT_AUTOMAKE
@@ -10,8 +9,6 @@ AC_CONFIG_HEADERS([src/config.h])
 
 # Checks for programs.
 AC_PROG_CC
-
-AC_PROG_LIBTOOL
 
 RFX_CHECK_FREETYPE
 AC_CHECK_LIB([m], [acos])
