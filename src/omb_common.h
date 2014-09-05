@@ -72,18 +72,18 @@
 #define OMB_MENU_ARROWS_SIZE 120
 #define OMB_MENU_ARROWS_COLOR 0xFA202020
 
-#define OMB_LCD_LOGO_X 40
-#define OMB_LCD_LOGO_Y 40
-#define OMB_LCD_LOGO_SIZE 40
+#define OMB_LCD_LOGO_X 0.1 // 10% of display width
+#define OMB_LCD_LOGO_Y 0.1 // like the X axis (same margin)
+#define OMB_LCD_LOGO_SIZE 0.1 // 10% of display width
 #define OMB_LCD_LOGO_COLOR 0xffffffff
 
-#define OMB_LCD_TITLE_X 120
-#define OMB_LCD_TITLE_Y 76
-#define OMB_LCD_TITLE_SIZE 20
+#define OMB_LCD_TITLE_X 0.3 // 30% of display width
+#define OMB_LCD_TITLE_Y 0.19 // 19% of display width (keep proportion with x axis)
+#define OMB_LCD_TITLE_SIZE 0.05 // 5% of display width
 #define OMB_LCD_TITLE_COLOR 0xffffffff
 
-#define OMB_LCD_SELECTION_Y 180
-#define OMB_LCD_SELECTION_SIZE 30
+#define OMB_LCD_SELECTION_Y 0.75 // 75% of display height
+#define OMB_LCD_SELECTION_SIZE 0.08 // 8% of display width
 #define OMB_LCD_SELECTION_COLOR 0xffffffff
 
 #define OMB_HEADER_X 20

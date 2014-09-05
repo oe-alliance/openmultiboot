@@ -63,20 +63,28 @@ void omb_draw_lcd()
 	char tmp[255];
 	sprintf(tmp, "%s %s", OMB_DISPLAY_NAME, OMB_APP_VERION);
 	
+	int logo_x = omb_lcd_get_width() * OMB_LCD_LOGO_X;
+	int logo_y = omb_lcd_get_width() * OMB_LCD_LOGO_Y;
+	int logo_size = omb_lcd_get_width() * OMB_LCD_LOGO_SIZE;
+	
+	int title_x = omb_lcd_get_width() * OMB_LCD_TITLE_X;
+	int title_y = omb_lcd_get_width() * OMB_LCD_TITLE_Y;
+	int title_size = omb_lcd_get_width() * OMB_LCD_TITLE_SIZE;
+	
 	omb_render_lcd_symbol(OMB_SYMBOL_LOGO,
-		OMB_LCD_LOGO_X,
-		OMB_LCD_LOGO_Y,
+		logo_x,
+		logo_y,
 		0,
 		OMB_LCD_LOGO_COLOR,
-		OMB_LCD_LOGO_SIZE,
+		logo_size,
 		OMB_TEXT_ALIGN_LEFT);
 		
 	omb_render_lcd_text(tmp,
-		OMB_LCD_TITLE_X,
-		OMB_LCD_TITLE_Y,
+		title_x,
+		title_y,
 		0,
 		OMB_LCD_TITLE_COLOR,
-		OMB_LCD_TITLE_SIZE,
+		title_size,
 		OMB_TEXT_ALIGN_LEFT);
 }
 
