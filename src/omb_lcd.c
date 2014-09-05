@@ -142,6 +142,9 @@ void omb_lcd_close()
 
 void omb_lcd_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color)
 {
+	if (!omb_lcd_buffer)
+		return;
+		
 	int i, j, z = 0;
 	long int location = 0;
 	unsigned char red = RED(color);
@@ -154,10 +157,10 @@ void omb_lcd_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color)
 	
 	for (i = y; i < y + bitmap->rows; i++) {
 		for (j = x; j < x + bitmap->width; j++) {
-			//if (i < 0 || j < 0 || i > omb_var_screen_info.yres || j > omb_var_screen_info.xres) {
-			//	z++;
-			//	continue;
-			//}
+			if (i < 0 || j < 0 || i > omb_lcd_height || j > omb_lcd_width) {
+				z++;
+				continue;
+			}
 			
 			if (bitmap->buffer[z] != 0x00) {
 				location = (j * (omb_lcd_bpp / 8)) +
@@ -165,9 +168,6 @@ void omb_lcd_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color)
 			
 				omb_lcd_buffer[location] = red << 3 | green >> 2;
 				omb_lcd_buffer[location + 1] = green << 6 | blue << 1;
-				//*(omb_fb_map + location) = blue;
-				//*(omb_fb_map + location + 1) = green;
-				//*(omb_fb_map + location + 2) = red;
 			}
 			z++;
 		}
