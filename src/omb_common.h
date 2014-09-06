@@ -44,7 +44,9 @@
 #define OMB_APP_NAME "open-multiboot"
 #define OMB_APP_VERION "1.0"
 #define OMB_DISPLAY_NAME "openMultiboot"
+#ifndef OMB_DEFAULT_TIMER
 #define OMB_DEFAULT_TIMER 5
+#endif
 #define OMB_SHOWIFRAME_BIN "/usr/bin/showiframe"
 #define OMB_MDEV_BIN "/etc/init.d/mdev"
 #define OMB_MODUTILS_BIN "/etc/init.d/modutils.sh"
