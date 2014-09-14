@@ -90,7 +90,7 @@ omb_device_item *omb_branding_read_info(const char* base_dir, const char *identi
 			sprintf(item->label, "%s (flash)", settings_value);
 		else
 			sprintf(item->label, "%s", settings_value);
-		free(settings_value)
+		free(settings_value);
 	}
 		
 	return item;
