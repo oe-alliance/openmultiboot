@@ -85,7 +85,7 @@
 #define OMB_LCD_TITLE_COLOR 0xffffffff
 
 #define OMB_LCD_SELECTION_Y 0.75 // 75% of display height
-#define OMB_LCD_SELECTION_SIZE 0.08 // 8% of display width
+#define OMB_LCD_SELECTION_SIZE 0.05 // 5% of display width
 #define OMB_LCD_SELECTION_COLOR 0xffffffff
 
 #define OMB_HEADER_X 20
