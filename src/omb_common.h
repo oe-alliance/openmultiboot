@@ -56,6 +56,7 @@
 #define OMB_NANDDUMP_BIN "/usr/sbin/nanddump"
 #define OMB_NANDWRITE_BIN "/usr/sbin/nandwrite"
 #define OMB_FLASHERASE_BIN "/usr/sbin/flash_erase"
+#define OMB_FLASHCP_BIN "/usr/sbin/flashcp"
 #define OMB_PYTHON_BIN "/usr/bin/python"
 #define OMB_BRANDING_HELPER_BIN "/sbin/open-multiboot-branding-helper.py"
 
