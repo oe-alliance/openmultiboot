@@ -28,7 +28,7 @@
 
 #define OMB_DEVICES_DIR "/dev"
 #define OMB_FB_DEVICE "/dev/fb/0"
-#define OMB_INPUT_DEVICE "/dev/input/event0"
+//#define OMB_INPUT_DEVICE "/dev/input/event0"
 #define OMB_VIDEO_DEVICE "/dev/dvb/adapter0/video0"
 #define OMB_LCD_DEVICE "/dev/dbox/lcd0"
 #define OMB_LCD_XRES "/proc/stb/lcd/xres"
