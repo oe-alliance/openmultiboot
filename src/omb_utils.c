@@ -166,8 +166,7 @@ int omb_utils_find_and_mount()
 						omb_log(LOG_ERROR, "cannot umount %s", OMB_MAIN_DIR);
 				}
 			}
-		}
-		
+		}	
 		closedir(fd);
 	}
 	return OMB_ERROR;
@@ -192,7 +191,7 @@ omb_device_item *omb_utils_get_images()
 			last->next = item;
 		last = item;
 	}
-	
+
 	sprintf(datadir, "%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR);
 	fd = opendir(datadir);
 	if (fd) {
@@ -210,6 +209,7 @@ omb_device_item *omb_utils_get_images()
 				}
 			}
 		}
+		closedir(fd);
 	}
 	return first;
 }
