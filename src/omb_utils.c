@@ -258,6 +258,7 @@ char* omb_utils_read(const char *key)
 			strtok(line, "\n");
 			char *ret = malloc(strlen(line) + 1);
 			strcpy(ret, line);
+			fclose(fd);
 			return ret;
 		}
 		fclose(fd);
