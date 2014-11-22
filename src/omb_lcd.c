@@ -69,11 +69,17 @@ int omb_lcd_read_value(const char *filename)
 int omb_lcd_open()
 {
 	omb_lcd_fd = open("/dev/dbox/lcd0", O_RDWR);
+	if (omb_lcd_fd == -1)
+		 omb_lcd_fd = open("/dev/dbox/oled0", O_RDWR);
 	if (omb_lcd_fd == -1) {
 		omb_log(LOG_ERROR, "cannot open lcd device");
 		return OMB_ERROR;
 	}
-	
+
+#ifdef OMB_HAVE_TEXTLCD
+	return OMB_SUCCESS;
+#endif
+
 	int tmp = LCD_MODE_BIN;
 	if (ioctl(omb_lcd_fd, LCD_IOCTL_ASC_MODE, &tmp)) {
 		omb_log(LOG_ERROR, "failed to set lcd bin mode");
@@ -101,7 +107,7 @@ int omb_lcd_open()
 	omb_lcd_buffer = malloc(omb_lcd_height * omb_lcd_stride);
 	
 	omb_log(LOG_DEBUG, "current lcd is %dx%d, %dbpp, stride %d", omb_lcd_width, omb_lcd_height, omb_lcd_bpp, omb_lcd_stride);
-	
+
 	return OMB_SUCCESS;
 }
 
@@ -172,4 +178,12 @@ void omb_lcd_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color)
 			z++;
 		}
 	}
+}
+
+void omb_lcd_write_text(const char* text)
+{
+	if(omb_lcd_fd < 0)
+		return;
+
+	write(omb_lcd_fd, text, strlen(text));
 }
