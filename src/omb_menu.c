@@ -148,6 +148,9 @@ void omb_menu_render()
 		omb_device_item *item = omb_menu_get(i);
 		int color = OMB_MENU_ITEM_COLOR;
 		if (i == omb_menu_selected) {
+#ifdef OMB_HAVE_TEXTLCD
+			omb_lcd_write_text(item->label);
+#else
 			int selection_y = omb_lcd_get_height() * OMB_LCD_SELECTION_Y;
 			int selection_size = omb_lcd_get_width() * OMB_LCD_SELECTION_SIZE;
 			
@@ -158,6 +161,7 @@ void omb_menu_render()
 				OMB_LCD_SELECTION_COLOR,
 				selection_size,
 				OMB_TEXT_ALIGN_CENTER);
+#endif
 			
 			color = OMB_MENU_ITEM_SELECTED_COLOR;
 		}

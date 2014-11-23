@@ -32,5 +32,6 @@ void omb_lcd_clear();
 void omb_lcd_update();
 
 void omb_lcd_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color);
+void omb_lcd_write_text(const char* text);
 
 #endif // _OMB_LCD_H_
