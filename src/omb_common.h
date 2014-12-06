@@ -48,6 +48,7 @@
 #define OMB_DEFAULT_TIMER 5
 #endif
 #define OMB_SHOWIFRAME_BIN "/usr/bin/showiframe"
+#define OMB_VOLATILE_MEDIA_BIN "/etc/init.d/volatile-media.sh"
 #define OMB_MDEV_BIN "/etc/init.d/mdev"
 #define OMB_MODUTILS_BIN "/etc/init.d/modutils.sh"
 #define OMB_INIT_BIN "/sbin/init"
