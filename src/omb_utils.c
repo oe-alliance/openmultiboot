@@ -300,7 +300,10 @@ void omb_utils_init_system()
 	if (!omb_utils_is_mounted("/media"))
 		if (mount("tmpfs", "/media", "tmpfs", 0, "size=64k") != 0)
 			omb_log(LOG_ERROR, "cannot mount /media");
-	
+
+	omb_log(LOG_DEBUG, "run volatile media");
+	system(OMB_VOLATILE_MEDIA_BIN);
+
 	omb_log(LOG_DEBUG, "run mdev");
 	system(OMB_MDEV_BIN);
 	
