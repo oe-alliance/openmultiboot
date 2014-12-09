@@ -244,6 +244,7 @@ int main(int argc, char *argv[])
 			omb_utils_restore_kernel(item);
 			omb_utils_save(OMB_SETTINGS_SELECTED, item->identifier);
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 1);
+			omb_utils_umount(OMB_MAIN_DIR);
 			omb_utils_reboot();
 			is_rebooting = 1;
 		}
@@ -251,6 +252,7 @@ int main(int argc, char *argv[])
 		if (!is_rebooting) {
 			if (item != NULL && strcmp(item->identifier, "flash") != 0)
 				omb_utils_remount_media(item);
+			omb_utils_umount(OMB_MAIN_DIR);
 			omb_utils_sysvinit(item, NULL);
 		}
 	
