@@ -22,6 +22,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
 #include <linux/input.h>
 #include <unistd.h>
 
@@ -197,19 +198,10 @@ int omb_show_menu()
 int main(int argc, char *argv[]) 
 {
 	int is_rebooting = 0;
-	int ombgo = 0;
-
-	if (argc == 1) {
-		ombgo = 1;
-	} else if (argc == 2) {
-		omb_log(LOG_DEBUG, "Start init with arg >%s<\n", argv[1]); // later we remove this debug, now we must on boot what is used
-		if (!strncmp(argv[1], "ubiroot", 7)) // needed for vu+ boxes
-			ombgo = 1;
-	}
-
-	if (ombgo == 0) {
+	if (argc > 1 && getppid() > 1) {
 		omb_utils_sysvinit(NULL, argv[1]);
-	} else {
+	}
+	else {
 		omb_utils_init_system();
 		omb_device_item *item = NULL;
 		omb_device_item *items = NULL;
@@ -255,11 +247,11 @@ int main(int argc, char *argv[])
 			omb_utils_umount(OMB_MAIN_DIR);
 			omb_utils_sysvinit(item, NULL);
 		}
-	
+
 		if (items) omb_utils_free_items(items);
 		if (selected) free(selected);
 	}
-	
+
 	return OMB_SUCCESS;
 }
 
