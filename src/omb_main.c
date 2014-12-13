@@ -37,6 +37,7 @@
 
 static int omb_timer_enabled;
 static int omb_current_timer;
+static int omb_timer;
 
 void omb_draw_header()
 {
@@ -134,7 +135,8 @@ int omb_show_menu()
 	omb_lcd_open();
 	
 	omb_timer_enabled = 1;
-	omb_current_timer = OMB_DEFAULT_TIMER;
+	omb_timer = omb_utils_gettimer();
+	omb_current_timer = omb_timer;
 	gettimeofday(&start, NULL);
 	
 	omb_refresh_gui();
@@ -167,7 +169,7 @@ int omb_show_menu()
 
 			mtime = ((seconds) * 1000 + useconds/1000.0) + 0.5;
 			int last_value = omb_current_timer;
-			omb_current_timer = OMB_DEFAULT_TIMER - (mtime / 1000);
+			omb_current_timer = omb_timer - (mtime / 1000);
 			
 			if (omb_current_timer != last_value)
 				need_refresh_gui = 1;
