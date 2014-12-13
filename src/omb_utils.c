@@ -235,6 +235,17 @@ void omb_utils_update_background(omb_device_item *item)
 	system(tmp);
 }
 
+void omb_utils_remove_nextboot()
+{
+	char tmp[255];
+	sprintf(tmp, "%s/%s/.%s", OMB_MAIN_DIR, OMB_DATA_DIR, OMB_SETTINGS_NEXTBOOT);
+	if(omb_utils_file_exists(tmp)) {
+		char cmd[255];
+		sprintf(cmd, "rm -rf %s", tmp);
+		system(cmd);
+	}
+}
+
 void omb_utils_save(const char* key, const char* value)
 {
 	char tmp[255];

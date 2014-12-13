@@ -33,6 +33,7 @@ typedef struct omb_device_item
 
 #define OMB_SETTINGS_SELECTED "selected"
 #define OMB_SETTINGS_FORCE "force"
+#define OMB_SETTINGS_NEXTBOOT "nextboot"
 
 int omb_utils_find_and_mount();
 omb_device_item *omb_utils_get_images();
@@ -43,6 +44,8 @@ void omb_utils_save(const char* key, const char* value);
 char* omb_utils_read(const char *key);
 void omb_utils_save_int(const char* key, int value);
 int omb_utils_read_int(const char *key);
+
+void omb_utils_remove_nextboot();
 
 void omb_utils_init_system();
 void omb_utils_load_modules(omb_device_item *item);

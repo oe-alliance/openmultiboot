@@ -206,6 +206,7 @@ int main(int argc, char *argv[])
 		omb_device_item *item = NULL;
 		omb_device_item *items = NULL;
 		char *selected = NULL;
+		char *nextboot = NULL;
 		if (omb_utils_find_and_mount() == OMB_SUCCESS) {
 			items = omb_utils_get_images();
 			omb_menu_set(items);
@@ -214,7 +215,14 @@ int main(int argc, char *argv[])
 				selected = malloc(6);
 				strcpy(selected, "flash");
 			}
-			omb_menu_set_selected(selected);
+			nextboot = omb_utils_read(OMB_SETTINGS_NEXTBOOT);
+			if (nextboot) {
+				omb_menu_set_selected(nextboot);
+				omb_utils_remove_nextboot();
+			}
+			else {
+				omb_menu_set_selected(selected);
+			}
 			item = omb_menu_get_selected();
 		}
 
@@ -250,6 +258,7 @@ int main(int argc, char *argv[])
 
 		if (items) omb_utils_free_items(items);
 		if (selected) free(selected);
+		if (nextboot) free(nextboot);
 	}
 
 	return OMB_SUCCESS;
