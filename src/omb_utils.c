@@ -404,7 +404,11 @@ void omb_utils_backup_kernel(omb_device_item *item)
 		return;
 	
 	omb_log(LOG_DEBUG, "backup kernel for image '%s'", item->identifier);
+#ifdef OMB_DREAMBOX
+	sprintf(cmd, "%s %s -nof %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+#else
 	sprintf(cmd, "%s %s -f %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+#endif
 	system(cmd);
 }
 
@@ -423,7 +427,11 @@ void omb_utils_restore_kernel(omb_device_item *item)
 		system(cmd);
 	
 		omb_log(LOG_DEBUG, "restore kernel for image '%s'", item->identifier);
+#ifdef OMB_DREAMBOX
+		sprintf(cmd, "%s -mno %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+#else
 		sprintf(cmd, "%s -pm %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+#endif
 		system(cmd);
 	}
 }
