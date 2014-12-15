@@ -83,7 +83,9 @@ int omb_lcd_open()
 	int tmp = LCD_MODE_BIN;
 	if (ioctl(omb_lcd_fd, LCD_IOCTL_ASC_MODE, &tmp)) {
 		omb_log(LOG_ERROR, "failed to set lcd bin mode");
+#ifndef OMB_DREAMBOX
 		return OMB_ERROR;
+#endif
 	}
 	
 	omb_lcd_width = omb_lcd_read_value(OMB_LCD_XRES);
