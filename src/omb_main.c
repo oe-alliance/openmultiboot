@@ -217,19 +217,20 @@ int main(int argc, char *argv[])
 				selected = malloc(6);
 				strcpy(selected, "flash");
 			}
-			nextboot = omb_utils_read(OMB_SETTINGS_NEXTBOOT);
-			if (nextboot) {
-				omb_menu_set_selected(nextboot);
-				omb_utils_remove_nextboot();
-			}
-			else {
-				omb_menu_set_selected(selected);
-			}
+			omb_menu_set_selected(selected);
 			item = omb_menu_get_selected();
 		}
 
 		omb_utils_load_modules(item);
-			
+
+		nextboot = omb_utils_read(OMB_SETTINGS_NEXTBOOT);
+		if (nextboot) {
+			omb_menu_set_selected(nextboot);
+			omb_utils_remove_nextboot();
+			item = omb_menu_get_selected();
+			free(nextboot);
+		}
+
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
 		if (!force && items) {
 			omb_utils_update_background(item);
@@ -260,7 +261,6 @@ int main(int argc, char *argv[])
 
 		if (items) omb_utils_free_items(items);
 		if (selected) free(selected);
-		if (nextboot) free(nextboot);
 	}
 
 	return OMB_SUCCESS;
