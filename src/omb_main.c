@@ -223,25 +223,26 @@ int main(int argc, char *argv[])
 
 		omb_utils_load_modules(item);
 
-		nextboot = omb_utils_read(OMB_SETTINGS_NEXTBOOT);
-		if (nextboot) {
-			omb_menu_set_selected(nextboot);
-			omb_utils_remove_nextboot();
-			item = omb_menu_get_selected();
-			free(nextboot);
-		}
-
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
 		if (!force && items) {
 			omb_utils_update_background(item);
 			omb_utils_backup_kernel(item);
-	
+
+			nextboot = omb_utils_read(OMB_SETTINGS_NEXTBOOT);
+			if (nextboot) {
+				omb_menu_set_selected(nextboot);
+				omb_utils_remove_nextboot();
+				item = omb_menu_get_selected();
+				omb_utils_update_background(item);
+				free(nextboot);
+			}
+
 			omb_show_menu();
 		}
 		else {
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 0);
 		}
-		
+
 		item = omb_menu_get_selected();
 		if (item && selected && strcmp(selected, item->identifier) != 0) {
 			omb_utils_restore_kernel(item);
