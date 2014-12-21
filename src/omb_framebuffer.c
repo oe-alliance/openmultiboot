@@ -31,7 +31,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#if defined(__sh__)
+#ifdef __sh__
 #include <linux/stmfb.h>
 #endif
 
@@ -71,7 +71,7 @@ int omb_read_screen_info()
 	
 	omb_screen_size = omb_fix_screen_info.smem_len;//omb_var_screen_info.xres * omb_var_screen_info.yres * omb_var_screen_info.bits_per_pixel / 8;
 
-#if defined(__sh__)
+#ifdef __sh__
 	omb_screen_size -= 1920*1080*4;
 #endif
 
@@ -108,7 +108,7 @@ int omb_set_screen_info(int width, int height, int bpp)
 
 int omb_map_framebuffer()
 {
-#if defined(__sh__)
+#ifdef __sh__
 	omb_fb_map = (unsigned char *)mmap(0, omb_screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, omb_fb_fd, 1920*1080*4);
 #else
 	omb_fb_map = (unsigned char *)mmap(0, omb_screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, omb_fb_fd, 0);
@@ -160,7 +160,7 @@ int omb_set_manual_blit()
 {
 	omb_log(LOG_DEBUG, "set manual blit");
 	
-#if not defined(__sh__)
+#ifndef __sh__
 	unsigned char tmp = 1;
 	if (ioctl(omb_fb_fd, FBIO_SET_MANUAL_BLIT, &tmp)) {
 		omb_log(LOG_ERROR, "failed to set manual blit");
@@ -173,7 +173,7 @@ int omb_set_manual_blit()
 
 void omb_blit()
 {
-#if defined(__sh__)
+#ifdef __sh__
 	STMFBIO_BLT_DATA    bltData;
 	memset(&bltData, 0, sizeof(STMFBIO_BLT_DATA));
 	bltData.operation  = BLT_OP_COPY;
