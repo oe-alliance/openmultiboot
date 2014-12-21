@@ -31,6 +31,10 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#if defined(__sh__)
+#include <linux/stmfb.h>
+#endif
+
 #include "omb_common.h"
 #include "omb_log.h"
 
@@ -66,7 +70,11 @@ int omb_read_screen_info()
 		omb_var_screen_info.xres, omb_var_screen_info.yres, omb_var_screen_info.bits_per_pixel, omb_fix_screen_info.line_length);
 	
 	omb_screen_size = omb_fix_screen_info.smem_len;//omb_var_screen_info.xres * omb_var_screen_info.yres * omb_var_screen_info.bits_per_pixel / 8;
-	
+
+#if defined(__sh__)
+	omb_screen_size -= 1920*1080*4;
+#endif
+
 	return OMB_SUCCESS;
 }
 
@@ -100,7 +108,11 @@ int omb_set_screen_info(int width, int height, int bpp)
 
 int omb_map_framebuffer()
 {
+#if defined(__sh__)
+	omb_fb_map = (unsigned char *)mmap(0, omb_screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, omb_fb_fd, 1920*1080*4);
+#else
 	omb_fb_map = (unsigned char *)mmap(0, omb_screen_size, PROT_READ | PROT_WRITE, MAP_SHARED, omb_fb_fd, 0);
+#endif
 	if (omb_fb_map == MAP_FAILED) {
 		omb_log(LOG_ERROR, "failed to map framebuffer device to memory");
 		return OMB_ERROR;
@@ -148,19 +160,47 @@ int omb_set_manual_blit()
 {
 	omb_log(LOG_DEBUG, "set manual blit");
 	
+#if not defined(__sh__)
 	unsigned char tmp = 1;
 	if (ioctl(omb_fb_fd, FBIO_SET_MANUAL_BLIT, &tmp)) {
 		omb_log(LOG_ERROR, "failed to set manual blit");
 		return OMB_ERROR;
 	}
+#endif
 	
 	return OMB_SUCCESS;
 }
 
 void omb_blit()
 {
+#if defined(__sh__)
+	STMFBIO_BLT_DATA    bltData;
+	memset(&bltData, 0, sizeof(STMFBIO_BLT_DATA));
+	bltData.operation  = BLT_OP_COPY;
+	bltData.srcOffset  = 1920*1080*4;
+	bltData.srcPitch   = omb_var_screen_info.xres * 4;
+	bltData.dstOffset  = 0;
+	bltData.dstPitch   = omb_var_screen_info.xres * 4;
+	bltData.src_top    = 0;
+	bltData.src_left   = 0;
+	bltData.src_right  = omb_var_screen_info.xres;
+	bltData.src_bottom = omb_var_screen_info.yres;
+	bltData.srcFormat  = SURF_BGRA8888;
+	bltData.dstFormat  = SURF_BGRA8888;
+	bltData.srcMemBase = STMFBGP_FRAMEBUFFER;
+	bltData.dstMemBase = STMFBGP_FRAMEBUFFER;
+	bltData.dst_top    = 0;
+	bltData.dst_left   = 0;
+	bltData.dst_right  = omb_var_screen_info.xres;
+	bltData.dst_bottom = omb_var_screen_info.yres;
+	if (ioctl(omb_fb_fd, STMFBIO_BLT, &bltData ) < 0)
+		omb_log(LOG_WARNING, "cannot blit the framebuffer");
+	if (ioctl(omb_fb_fd, STMFBIO_SYNC_BLITTER) < 0)
+		omb_log(LOG_WARNING, "cannot sync blit");
+#else
 	if (ioctl(omb_fb_fd, FBIO_BLIT) == -1)
 		omb_log(LOG_WARNING, "cannot blit the framebuffer");
+#endif
 }
 
 int omb_get_screen_width()
