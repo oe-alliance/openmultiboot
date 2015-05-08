@@ -231,10 +231,6 @@ void omb_utils_free_items(omb_device_item *items)
 void omb_utils_update_background(omb_device_item *item)
 {
 	char tmp[255];
-#ifdef __sh__
-	sprintf(tmp, "killall -9 %s", OMB_SHOWIFRAME_BIN);
-	system(tmp);
-#endif
 	sprintf(tmp, "%s %s/usr/share/bootlogo.mvi", OMB_SHOWIFRAME_BIN, item->directory);
 	system(tmp);
 }
