@@ -35,6 +35,7 @@ typedef struct omb_device_item
 #define OMB_SETTINGS_FORCE "force"
 #define OMB_SETTINGS_NEXTBOOT "nextboot"
 #define OMB_SETTINGS_TIMER "timer"
+#define OMB_SETTINGS_RCTYPE "rctype"
 
 int omb_utils_find_and_mount();
 omb_device_item *omb_utils_get_images();
@@ -48,6 +49,7 @@ int omb_utils_read_int(const char *key);
 
 void omb_utils_remove_nextboot();
 int omb_utils_gettimer();
+void omb_utils_setrctype();
 
 void omb_utils_init_system();
 void omb_utils_load_modules(omb_device_item *item);

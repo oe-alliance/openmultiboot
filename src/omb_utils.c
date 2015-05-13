@@ -261,6 +261,22 @@ int omb_utils_gettimer()
 	return OMB_DEFAULT_TIMER;
 }
 
+void omb_utils_setrctype()
+{
+	char tmp[255];
+	sprintf(tmp, "%s/%s/.%s", OMB_MAIN_DIR, OMB_DATA_DIR, OMB_SETTINGS_RCTYPE);
+	if(omb_utils_file_exists(tmp)) {
+		char *tmp = omb_utils_read(OMB_SETTINGS_RCTYPE);
+		if (tmp) {
+			int ret = atoi(tmp);
+			free(tmp);
+			if (ret) {
+				system(cmd);
+			}
+		}
+	}
+}
+
 void omb_utils_save(const char* key, const char* value)
 {
 	char tmp[255];

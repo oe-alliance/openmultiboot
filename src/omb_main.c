@@ -222,6 +222,7 @@ int main(int argc, char *argv[])
 		}
 
 		omb_utils_load_modules(item);
+		omb_utils_setrctype();
 
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
 		if (!force && items) {
