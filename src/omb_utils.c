@@ -271,6 +271,7 @@ void omb_utils_setrctype()
 			int ret = atoi(tmp);
 			free(tmp);
 			if (ret) {
+				sprintf(cmd, "echo %d > /proc/stb/ir/rc/type", ret);
 				system(cmd);
 			}
 		}
