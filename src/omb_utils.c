@@ -106,14 +106,17 @@ void omb_utils_remount_media(omb_device_item *item)
 	struct mntent* part = NULL;
 	char media[255];
 	char base[255];
+	char vol[255];
 	sprintf(media, "%s/%s/%s/media", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 	sprintf(base, "%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
-
-	omb_log(LOG_DEBUG, "remount /media into %s", media);
-	if (!omb_utils_is_mounted(media))
-		if (mount("tmpfs", media, "tmpfs", 0, "size=64k") != 0)
-			omb_log(LOG_ERROR, "cannot mount %s", media);
-			
+	sprintf(vol, "%s/%s/%s/etc/init.d/volatile-media.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	
+	if (omb_utils_file_exists(vol)) {
+		omb_log(LOG_DEBUG, "remount /media into %s", media);
+		if (!omb_utils_is_mounted(media))
+			if (mount("tmpfs", media, "tmpfs", 0, "size=64k") != 0)
+				omb_log(LOG_ERROR, "cannot mount %s", media);
+	}		
 	if ((mtab = setmntent("/etc/mtab", "r")) != NULL) {
 		while ((part = getmntent(mtab)) != NULL) {
 			if (part->mnt_dir != NULL
@@ -291,6 +294,17 @@ void omb_utils_save(const char* key, const char* value)
 	}
 }
 
+int omb_utils_check_lock_menu()
+{
+	char tmp[255];
+	sprintf(tmp, "%s/%s/.bootmenu.lock", OMB_MAIN_DIR, OMB_DATA_DIR);
+	if (omb_utils_file_exists(tmp))
+		return 1;
+	
+	return 0;
+	
+}
+
 char* omb_utils_read(const char *key)
 {
 	char tmp[255];
@@ -328,6 +342,24 @@ int omb_utils_read_int(const char *key)
 	return 0;
 }
 
+omb_utils_build_vu_wrapper(omb_device_item *item)
+{
+	FILE *fp;
+	char tmp[255];
+	char cmd[512];
+	
+	sprintf(tmp, "%s/%s/%s/usr/bin/vu-util-wrapper.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+ 	fp = fopen(tmp,"w");
+ 	fprintf(fp,"%s","#!/bin/sh\n\n");
+ 	fprintf(fp,"%s","export PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin\n");
+ 	fprintf(fp,"%s","/etc/init.d/vuplus-platform-util start\n");
+ 	fclose(fp);
+ 	
+ 	sprintf(cmd, "chmod 0755 %s/%s/%s/usr/bin/vu-util-wrapper.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+ 	system(cmd);
+ 	
+ 	return 0;
+}
 void omb_utils_init_system()
 {
 	omb_log(LOG_DEBUG, "mount /proc");
@@ -355,21 +387,26 @@ void omb_utils_init_system()
 	sleep(2);
 }
 
-void omb_utils_load_modules(omb_device_item *item)
-{
-	int i;
-	
-	omb_log(LOG_DEBUG, "load modules");
-	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
-		system(OMB_MODUTILS_BIN);
-	}
-	else {
+/*
+ **
+ * by Meo.
+ * We don't need to load drivers when we have not to show the bootmenu (force = 0).
+ * So we split the original load_modules function to load drivers
+ * only when needed.
+ **
+ */
+
+void omb_utils_prepare_destination(omb_device_item *item)
+{	
+	omb_log(LOG_DEBUG, "prepare destination");
+
+	if (item != NULL && strcmp(item->identifier, "flash") != 0)
+	{
 		char dev[255];
 		char proc[255];
 		char sys[255];
 		char omb[255];
 		char omb_plugin[255];
-		char cmd[512];
 		sprintf(dev, "%s/%s/%s/dev", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 		sprintf(proc, "%s/%s/%s/proc", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 		sprintf(sys, "%s/%s/%s/sys", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
@@ -387,7 +424,7 @@ void omb_utils_load_modules(omb_device_item *item)
 		if (!omb_utils_is_mounted(sys))
 			if (mount("/sys", sys, NULL, MS_BIND, NULL) != 0)
 				omb_log(LOG_ERROR, "cannot bind /sys");
-		
+
 		if (!omb_utils_dir_exists(omb))
 			mkdir(omb, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
@@ -401,11 +438,97 @@ void omb_utils_load_modules(omb_device_item *item)
 		if (!omb_utils_is_mounted(omb_plugin))
 			if (mount(OMB_PLUGIN_DIR, omb_plugin, NULL, MS_BIND, NULL) != 0)
 				omb_log(LOG_ERROR, "cannot bind %s", OMB_PLUGIN_DIR);
+	}
+	
+}
+
+void omb_utils_load_modules(omb_device_item *item)
+{
+	int i;
+	
+	omb_log(LOG_DEBUG, "load modules");
+
+	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+		system(OMB_MODUTILS_BIN);
+	}
+	else {
+		
+		char cmd[512];
 		
 		sprintf(cmd, "%s %s/%s/%s %s", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_MODUTILS_BIN);
 		system(cmd);
 	}
 	
+	for (i = 0; i < 200; i++) {
+		if (omb_utils_file_exists(OMB_VIDEO_DEVICE))
+			break;
+		
+		usleep(10000);
+	}
+}
+
+/*
+ **
+ * by Meo.
+ * The Vu+ drivers for OpenGles are loaded at the end of rcS
+ * So we need additional stuffs and a different procedure.
+ **
+ */
+void omb_utils_load_modules_vugl(omb_device_item *item)
+{	
+	omb_log(LOG_DEBUG, "load vuplus-platform-util");
+	
+	int i;
+
+	if (item == NULL || strcmp(item->identifier, "flash") == 0) 
+	{
+		system("/etc/init.d/mountall.sh start");
+		system("/etc/init.d/modload.sh start");
+		system("/etc/init.d/modutils.sh start");
+		system("/etc/init.d/populate-volatile.sh start");
+		system("/etc/init.d/bootmisc.sh start");
+		system("/etc/init.d/vuplus-platform-util start");
+	}
+
+	else 
+	{
+		
+		char tmp[255];
+		char cmd[512];
+			
+
+		sprintf(tmp, "%s/%s/%s/etc/init.d/mountrun.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		if(omb_utils_file_exists(tmp)) {
+			sprintf(cmd, "%s %s/%s/%s /etc/init.d/mountrun.sh start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+			system(cmd);
+		}
+
+		sprintf(cmd, "%s %s/%s/%s /etc/init.d/mountall.sh start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+		
+		sprintf(tmp, "%s/%s/%s/etc/init.d/modload.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		if(omb_utils_file_exists(tmp)) {
+			sprintf(cmd, "%s %s/%s/%s /etc/init.d/modload.sh start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+			system(cmd);
+		}
+		
+		sprintf(cmd, "%s %s/%s/%s /etc/init.d/modutils.sh start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+		
+		sprintf(cmd, "%s %s/%s/%s /etc/init.d/populate-volatile.sh start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+
+		sprintf(cmd, "%s %s/%s/%s /etc/init.d/bootmisc.sh start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+
+// prevent missing path in chroot
+		omb_utils_build_vu_wrapper(item);
+
+		sprintf(cmd, "%s %s/%s/%s /usr/bin/vu-util-wrapper.sh", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+		
+	}
+
 	for (i = 0; i < 500; i++) {
 		if (omb_utils_file_exists(OMB_VIDEO_DEVICE))
 			break;
@@ -466,7 +589,12 @@ void omb_utils_sysvinit(omb_device_item *item, const char *args)
 	}
 	else {
 		char path[255];
+		char udev[255];
 		sprintf(path, "%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(udev, "%s/%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, "/etc/init.d/udev");
+		if (omb_utils_file_exists(udev))
+				system("/etc/init.d/mdev stop");
+				
 		execl(OMB_CHROOT_BIN, OMB_CHROOT_BIN, path, OMB_INIT_BIN, args, NULL);
 	}
 }
