@@ -146,13 +146,15 @@ int omb_make_palette()
 		colormap.blue[i]  = (bs * ((i) % b)) * 255;
 	}
 
-	omb_log(LOG_DEBUG, "set color palette");
+	omb_log(LOG_DEBUG, "set color palette disabled: FIXME !!");
+// FIXME
+/*	
 	if (ioctl(omb_fb_fd, FBIOPUTCMAP, &colormap) == -1) {
 		omb_log(LOG_ERROR, "failed to set color palette");
 		//return OMB_ERROR;
 		return OMB_SUCCESS; // NEED TO BE FIXED FOR VU+ BOXES !!
 	}
-	
+*/	
 	return OMB_SUCCESS;
 }
 
