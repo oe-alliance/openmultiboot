@@ -46,13 +46,17 @@ void omb_utils_save(const char* key, const char* value);
 char* omb_utils_read(const char *key);
 void omb_utils_save_int(const char* key, int value);
 int omb_utils_read_int(const char *key);
+int omb_utils_check_lock_menu();
+int omb_utils_build_vu_wrapper(omb_device_item *item);
 
 void omb_utils_remove_nextboot();
 int omb_utils_gettimer();
 void omb_utils_setrctype();
 
 void omb_utils_init_system();
+void omb_utils_prepare_destination(omb_device_item *item);
 void omb_utils_load_modules(omb_device_item *item);
+void omb_utils_load_modules_vugl(omb_device_item *item);
 
 void omb_utils_backup_kernel(omb_device_item *item);
 void omb_utils_restore_kernel(omb_device_item *item);
