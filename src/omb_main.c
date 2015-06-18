@@ -110,13 +110,13 @@ void omb_refresh_gui()
 	omb_clear_screen();
 	omb_lcd_clear();
 	
-	omb_draw_lcd();
+//	omb_draw_lcd();
 	omb_draw_header();
 	omb_draw_timer();
 	omb_menu_render();
 	
 	omb_blit();
-	omb_lcd_update();
+//	omb_lcd_update();
 }
 
 int omb_show_menu()
@@ -200,10 +200,11 @@ int omb_show_menu()
 int main(int argc, char *argv[]) 
 {
 	int is_rebooting = 0;
+
 	if (argc > 1 && getppid() > 1) {
 		omb_utils_sysvinit(NULL, argv[1]);
 	}
-	else {
+	else {	
 		omb_utils_init_system();
 		omb_device_item *item = NULL;
 		omb_device_item *items = NULL;
@@ -220,12 +221,22 @@ int main(int argc, char *argv[])
 			omb_menu_set_selected(selected);
 			item = omb_menu_get_selected();
 		}
+/*
+ * by Meo. load_modules moved !
+ */
+		omb_utils_prepare_destination(item);
 
-		omb_utils_load_modules(item);
-		omb_utils_setrctype();
-
+		int lock_menu = omb_utils_check_lock_menu();
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
-		if (!force && items) {
+		if (!force && items) 
+		{
+			if (!lock_menu) {
+				omb_utils_load_modules(item);
+				if (!omb_utils_file_exists(OMB_VIDEO_DEVICE)) {
+					omb_utils_load_modules_vugl(item);
+				}
+				omb_utils_setrctype();
+			}
 			omb_utils_update_background(item);
 			omb_utils_backup_kernel(item);
 
@@ -237,8 +248,9 @@ int main(int argc, char *argv[])
 				omb_utils_update_background(item);
 				free(nextboot);
 			}
-
-			omb_show_menu();
+			
+			if (!lock_menu)
+				omb_show_menu();
 		}
 		else {
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 0);
