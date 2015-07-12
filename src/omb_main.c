@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
 		}
 
 		item = omb_menu_get_selected();
-		if (item && selected && strcmp(selected, item->identifier) != 0) {
+		if ((item && selected && strcmp(selected, item->identifier)) != 0 || (item && strstr(item->identifier, "vti") && !force)) {
 			omb_utils_restore_kernel(item);
 			omb_utils_save(OMB_SETTINGS_SELECTED, item->identifier);
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 1);
