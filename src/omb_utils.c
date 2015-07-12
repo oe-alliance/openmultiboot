@@ -106,10 +106,14 @@ void omb_utils_remount_media(omb_device_item *item)
 	struct mntent* part = NULL;
 	char media[255];
 	char base[255];
+	char hdd[255];
+	char usb[255];
 	char vol[255];
 	sprintf(media, "%s/%s/%s/media", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 	sprintf(base, "%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 	sprintf(vol, "%s/%s/%s/etc/init.d/volatile-media.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	sprintf(hdd, "%s/%s/%s/media/hdd", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	sprintf(usb, "%s/%s/%s/media/usb", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 	
 	if (omb_utils_file_exists(vol)) {
 		omb_log(LOG_DEBUG, "remount /media into %s", media);
@@ -137,7 +141,21 @@ void omb_utils_remount_media(omb_device_item *item)
 		}
 		endmntent(mtab);
 	}
-
+	
+	if (omb_utils_file_exists(vol)) {
+//		if (omb_utils_dir_exists("/dev/sda1")) {
+			if (!omb_utils_dir_exists(hdd))
+				mkdir(hdd, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			omb_log(LOG_DEBUG, "mount hdd");
+			omb_utils_mount("/dev/sda1", hdd);
+//		}
+//		if (omb_utils_dir_exists("/dev/sdb1")) {
+			if (!omb_utils_dir_exists(usb))
+				mkdir(usb, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			omb_log(LOG_DEBUG, "mount usb");
+			omb_utils_mount("/dev/sdb1", usb);
+		}
+//	}	
 	if (omb_utils_umount("/media") == OMB_ERROR)
 		omb_log(LOG_WARNING, "cannot umount /media");
 }
