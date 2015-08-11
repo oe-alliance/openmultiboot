@@ -86,11 +86,13 @@ int omb_set_screen_info(int width, int height, int bpp)
 	omb_var_screen_info.xoffset = omb_var_screen_info.yoffset = 0;
 	omb_var_screen_info.height = 0;
 	omb_var_screen_info.width = 0;
-	
+
+#ifndef __sh__
 	if (ioctl(omb_fb_fd, FBIOPUT_VSCREENINFO, &omb_var_screen_info) < 0) {
 		omb_log(LOG_ERROR, "cannot set variable information");
 		return OMB_ERROR;
 	}
+#endif
 	
 	if ((omb_var_screen_info.xres != width) && (omb_var_screen_info.yres != height) && (omb_var_screen_info.bits_per_pixel != bpp)) {
 		omb_log(LOG_ERROR, "cannot set variable information: got %dx%dx%d instead of %dx%dx%d",
