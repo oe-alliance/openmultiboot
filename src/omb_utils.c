@@ -483,6 +483,22 @@ void omb_utils_load_modules(omb_device_item *item)
 		
 		usleep(10000);
 	}
+
+#ifdef __sh__
+	omb_log(LOG_DEBUG, "load lirc");
+	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+		system("/etc/init.d/populate-volatile.sh start");
+		system("/etc/init.d/lircd start");
+	}
+	else {
+		char cmd[255];
+		sprintf(cmd, "%s %s/%s/%s /etc/init.d/populate-volatile.sh start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+		sprintf(cmd, "%s %s/%s/%s /etc/init.d/lircd start", OMB_CHROOT_BIN, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		system(cmd);
+	}
+#endif
+
 }
 
 /*
