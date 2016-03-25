@@ -36,6 +36,7 @@
 #endif
 
 #include "omb_common.h"
+#include "omb_utils.h"
 #include "omb_log.h"
 
 #ifndef FBIO_BLIT
@@ -219,7 +220,10 @@ int omb_get_screen_height()
 
 int omb_open_framebuffer()
 {
-	omb_fb_fd = open(OMB_FB_DEVICE, O_RDWR);
+	if (omb_utils_file_exists(OMB_FB_DEVICE))
+	    omb_fb_fd = open(OMB_FB_DEVICE, O_RDWR);
+	else
+	    omb_fb_fd = open(OMB_FB_DEVICE_FAILOVER, O_RDWR);	    
 	if (omb_fb_fd == -1) {
 		omb_log(LOG_ERROR, "cannot open framebuffer device");
 		return OMB_ERROR;

@@ -28,9 +28,11 @@
 
 #define OMB_DEVICES_DIR "/dev"
 #define OMB_FB_DEVICE "/dev/fb/0"
+#define OMB_FB_DEVICE_FAILOVER "/dev/fb0"
 //#define OMB_INPUT_DEVICE "/dev/input/event0"
 #define OMB_VIDEO_DEVICE "/dev/dvb/adapter0/video0"
 #define OMB_LCD_DEVICE "/dev/dbox/lcd0"
+#define OMB_PROC_STB "/proc/stb"
 #define OMB_LCD_XRES "/proc/stb/lcd/xres"
 #define OMB_LCD_YRES "/proc/stb/lcd/yres"
 #define OMB_LCD_BPP "/proc/stb/lcd/bpp"
@@ -59,6 +61,7 @@
 #define OMB_FLASHERASE_BIN "/usr/sbin/flash_erase"
 #define OMB_PYTHON_BIN "/usr/bin/python"
 #define OMB_BRANDING_HELPER_BIN "/sbin/open-multiboot-branding-helper.py"
+#define OMB_DD_BIN "/bin/dd"
 
 #define OMB_MENU_ITEM_RADIUS 10
 #define OMB_MENU_ITEM_HEIGHT 80
