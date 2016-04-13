@@ -415,29 +415,29 @@ void omb_utils_prepare_destination(omb_device_item *item)
 		
 		if (!omb_utils_is_mounted(dev))
 			if (mount("/dev", dev, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind /dev");
+				omb_log(LOG_ERROR, "cannot bind /dev to %s",dev);
 		
 		if (!omb_utils_is_mounted(proc))
 			if (mount("/proc", proc, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind /proc");
+				omb_log(LOG_ERROR, "cannot bind /proc to %s",proc);
 		
 		if (!omb_utils_is_mounted(sys))
 			if (mount("/sys", sys, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind /sys");
+				omb_log(LOG_ERROR, "cannot bind /sys to %s",sys);
 
 		if (!omb_utils_dir_exists(omb))
 			mkdir(omb, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 		if (!omb_utils_is_mounted(omb))
 			if (mount(OMB_MAIN_DIR, omb, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind %s", OMB_MAIN_DIR);
+				omb_log(LOG_ERROR, "cannot bind %s to %s", OMB_MAIN_DIR, omb);
 				
 		if (!omb_utils_dir_exists(omb_plugin))
 			mkdir(omb_plugin, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 		if (!omb_utils_is_mounted(omb_plugin))
 			if (mount(OMB_PLUGIN_DIR, omb_plugin, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind %s", OMB_PLUGIN_DIR);
+				omb_log(LOG_ERROR, "cannot bind %s to %s", OMB_PLUGIN_DIR, omb_plugin);
 	}
 	
 }
