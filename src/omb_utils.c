@@ -383,7 +383,7 @@ void omb_utils_init_system()
 	omb_log(LOG_DEBUG, "run mdev");
 	system(OMB_MDEV_BIN);
 	
-	// we really need this sleep?? :(
+	// we really need this sleep?? :( - (wait for mdev to finalize)
 	sleep(2);
 }
 
