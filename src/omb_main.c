@@ -25,6 +25,7 @@
 #include <sys/types.h>
 #include <linux/input.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 #include "omb_common.h"
 #include "omb_log.h"
@@ -72,7 +73,9 @@ void omb_draw_lcd()
 	int title_x = omb_lcd_get_width() * OMB_LCD_TITLE_X;
 	int title_y = omb_lcd_get_width() * OMB_LCD_TITLE_Y;
 	int title_size = omb_lcd_get_width() * OMB_LCD_TITLE_SIZE;
-	
+
+	int fvu = open("/proc/stb/info/vumodel", O_RDONLY);
+	if (fvu == -1 )
 	omb_render_lcd_symbol(OMB_SYMBOL_LOGO,
 		logo_x,
 		logo_y,
@@ -80,7 +83,15 @@ void omb_draw_lcd()
 		OMB_LCD_LOGO_COLOR,
 		logo_size,
 		OMB_TEXT_ALIGN_LEFT);
-		
+	else
+	omb_render_lcd_text("VU+",
+		logo_x,
+		title_y,
+		0,
+		OMB_LCD_LOGO_COLOR,
+		title_size,
+		OMB_TEXT_ALIGN_LEFT);
+
 	omb_render_lcd_text(tmp,
 		title_x,
 		title_y,
