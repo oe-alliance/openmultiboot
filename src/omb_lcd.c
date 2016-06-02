@@ -70,7 +70,11 @@ int omb_lcd_open()
 {
 	omb_lcd_fd = open("/dev/dbox/lcd0", O_RDWR);
 	if (omb_lcd_fd == -1)
-		 omb_lcd_fd = open("/dev/dbox/oled0", O_RDWR);
+		omb_lcd_fd = open("/dev/lcd0", O_RDWR);
+	if (omb_lcd_fd == -1)
+		omb_lcd_fd = open("/dev/dbox/oled0", O_RDWR);
+	if (omb_lcd_fd == -1)
+		omb_lcd_fd = open("/dev/oled0", O_RDWR);
 	if (omb_lcd_fd == -1) {
 		omb_log(LOG_ERROR, "cannot open lcd device");
 		return OMB_ERROR;
