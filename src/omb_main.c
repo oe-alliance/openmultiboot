@@ -110,13 +110,13 @@ void omb_refresh_gui()
 	omb_clear_screen();
 	omb_lcd_clear();
 	
-//	omb_draw_lcd();
+	omb_draw_lcd();
 	omb_draw_header();
 	omb_draw_timer();
 	omb_menu_render();
 	
 	omb_blit();
-//	omb_lcd_update();
+	omb_lcd_update();
 }
 
 int omb_show_menu()

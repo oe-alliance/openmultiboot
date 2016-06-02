@@ -110,6 +110,14 @@ int omb_lcd_open()
 	
 	omb_log(LOG_DEBUG, "current lcd is %dx%d, %dbpp, stride %d", omb_lcd_width, omb_lcd_height, omb_lcd_bpp, omb_lcd_stride);
 
+
+	//vusolo4k need a brightness to enable lcd
+	int fb =  open("/proc/stb/fp/oled_brightness", O_WRONLY|O_CREAT|O_TRUNC, 0666);
+	if (fb == -1) {
+	    write(fb,"127",3);
+	    close(fb);
+	}
+
 	return OMB_SUCCESS;
 }
 
@@ -174,9 +182,19 @@ void omb_lcd_draw_character(FT_Bitmap* bitmap, FT_Int x, FT_Int y, int color)
 				location = (j * (omb_lcd_bpp / 8)) +
 					(i * omb_lcd_stride);
 			
-				omb_lcd_buffer[location] = red << 3 | green >> 2;
-				omb_lcd_buffer[location + 1] = green << 6 | blue << 1;
+				if ( omb_lcd_bpp == 32) {
+					omb_lcd_buffer[location] = RED(color);
+					omb_lcd_buffer[location + 1] = GREEN(color);
+					omb_lcd_buffer[location + 2] = BLUE(color) ;
+					omb_lcd_buffer[location + 3] = 0xff;
+				} else {
+					omb_lcd_buffer[location] = red << 3 | green >> 2;
+					omb_lcd_buffer[location + 1] = green << 6 | blue << 1;
+				}
 			}
+			// vusolo4k needs alpha channel
+			if ( omb_lcd_bpp == 32)
+				omb_lcd_buffer[location + 3] = 0xff;
 			z++;
 		}
 	}
