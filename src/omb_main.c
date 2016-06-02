@@ -67,11 +67,11 @@ void omb_draw_lcd()
 	sprintf(tmp, "%s %s", OMB_DISPLAY_NAME, OMB_APP_VERION);
 	
 	int logo_x = omb_lcd_get_width() * OMB_LCD_LOGO_X;
-	int logo_y = omb_lcd_get_width() * OMB_LCD_LOGO_Y;
+	int logo_y = omb_lcd_get_height() * OMB_LCD_LOGO_Y;
 	int logo_size = omb_lcd_get_width() * OMB_LCD_LOGO_SIZE;
 	
 	int title_x = omb_lcd_get_width() * OMB_LCD_TITLE_X;
-	int title_y = omb_lcd_get_width() * OMB_LCD_TITLE_Y;
+	int title_y = omb_lcd_get_height() * OMB_LCD_TITLE_Y;
 	int title_size = omb_lcd_get_width() * OMB_LCD_TITLE_SIZE;
 
 	int fvu = open("/proc/stb/info/vumodel", O_RDONLY);
