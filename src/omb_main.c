@@ -39,6 +39,7 @@
 static int omb_timer_enabled;
 static int omb_current_timer;
 static int omb_timer;
+char omb_vumodel[63];
 
 void omb_draw_header()
 {
@@ -74,8 +75,7 @@ void omb_draw_lcd()
 	int title_y = omb_lcd_get_height() * OMB_LCD_TITLE_Y;
 	int title_size = omb_lcd_get_width() * OMB_LCD_TITLE_SIZE;
 
-	int fvu = open("/proc/stb/info/vumodel", O_RDONLY);
-	if (fvu == -1 )
+	if (! strcmp(omb_vumodel,""))
 	omb_render_lcd_symbol(OMB_SYMBOL_LOGO,
 		logo_x,
 		logo_y,
@@ -83,15 +83,13 @@ void omb_draw_lcd()
 		OMB_LCD_LOGO_COLOR,
 		logo_size,
 		OMB_TEXT_ALIGN_LEFT);
-	else
-	omb_render_lcd_text("VU+",
-		logo_x,
-		title_y,
-		0,
-		OMB_LCD_LOGO_COLOR,
-		title_size,
-		OMB_TEXT_ALIGN_LEFT);
+	else {
+		if (! strcmp(omb_vumodel,"duo2"))
+			title_y += 2;
 
+		sprintf(tmp, "VU+ %s %s", OMB_DISPLAY_NAME, OMB_APP_VERION);
+		title_x = logo_x;
+	}
 	omb_render_lcd_text(tmp,
 		title_x,
 		title_y,
@@ -215,7 +213,9 @@ int main(int argc, char *argv[])
 	if (argc > 1 && getppid() > 1) {
 		omb_utils_sysvinit(NULL, argv[1]);
 	}
-	else {	
+	else {
+		omb_vumodel[0] = '\0';
+
 		omb_utils_init_system();
 		omb_device_item *item = NULL;
 		omb_device_item *items = NULL;
@@ -260,8 +260,18 @@ int main(int argc, char *argv[])
 				free(nextboot);
 			}
 			
-			if (!lock_menu)
+			if (!lock_menu) {
+				FILE *fvu = fopen("/proc/stb/info/vumodel", "r");
+				if (fvu) {
+					char tmp[63];
+					if (fscanf(fvu, "%s", &tmp) == 1) {
+						strcpy(omb_vumodel, tmp);
+					}
+					fclose(fvu);
+				}
+				printf("boxmodel: %s\n", omb_vumodel);
 				omb_show_menu();
+			}
 		}
 		else {
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 0);
