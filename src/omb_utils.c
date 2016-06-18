@@ -582,9 +582,11 @@ void omb_utils_restore_kernel(omb_device_item *item)
 	
 	sprintf(filename, "%s/%s/.kernels/%s.bin", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 	if (omb_utils_file_exists(filename)) {
+#ifndef OMB_MMCBLK
 		omb_log(LOG_DEBUG, "erasing MTD");
 		sprintf(cmd, "%s %s 0 0", OMB_FLASHERASE_BIN, OMB_KERNEL_MTD);
 		system(cmd);
+#endif
 	
 		omb_log(LOG_DEBUG, "restore kernel for image '%s'", item->identifier);
 #ifdef OMB_DREAMBOX
