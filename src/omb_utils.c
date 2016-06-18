@@ -342,7 +342,7 @@ int omb_utils_read_int(const char *key)
 	return 0;
 }
 
-omb_utils_build_vu_wrapper(omb_device_item *item)
+void omb_utils_build_vu_wrapper(omb_device_item *item)
 {
 	FILE *fp;
 	char tmp[255];
@@ -357,9 +357,8 @@ omb_utils_build_vu_wrapper(omb_device_item *item)
  	
  	sprintf(cmd, "chmod 0755 %s/%s/%s/usr/bin/vu-util-wrapper.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
  	system(cmd);
- 	
- 	return 0;
 }
+
 void omb_utils_init_system()
 {
 	omb_log(LOG_DEBUG, "mount /proc");
