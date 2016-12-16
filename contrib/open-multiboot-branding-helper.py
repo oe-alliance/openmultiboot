@@ -72,7 +72,7 @@ else:
 			if WORKAROUND:
 				if sys.argv[2] == 'image_distro':
 					try:
-						print open("/etc/issue").readlines()[-2].capitalize().strip()[:-6]
+						print open(sys.argv[1].replace("/usr/lib/enigma2/python","")+"/etc/issue").readlines()[-2].capitalize().strip()[:-6]
 					except:
 						print "undefined"
 				elif sys.argv[2] == 'image_version':
