@@ -115,9 +115,9 @@ int omb_lcd_open()
 	omb_log(LOG_DEBUG, "current lcd is %dx%d, %dbpp, stride %d", omb_lcd_width, omb_lcd_height, omb_lcd_bpp, omb_lcd_stride);
 
 
-	//vusolo4k need a brightness to enable lcd
+	//vusolo4k and vuultimo4k need a brightness to enable lcd
 	int fb =  open("/proc/stb/fp/oled_brightness", O_WRONLY|O_CREAT|O_TRUNC, 0666);
-	if (fb == -1) {
+	if (fb) {
 	    write(fb,"127",3);
 	    close(fb);
 	}
