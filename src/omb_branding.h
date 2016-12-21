@@ -25,6 +25,8 @@
 
 #include "omb_utils.h"	
 
+int omb_branding_is_compatible(const char* base_dir);
+
 omb_device_item *omb_branding_read_info(const char* base_dir, const char *identifier);
 
 #endif // _OMB_BRANDING_H_
