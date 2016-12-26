@@ -33,38 +33,38 @@
 int omb_branding_is_compatible(const char* base_dir)
 {
 	char fallback_arch_path[512];
-	char machine_build_inflash_cmd[512];
-	char machine_build_cmd[512];
-	char machine_build_inflash[255] = "\0";
-	char machine_build[255] = "\0";
+	char box_type_inflash_cmd[512];
+	char box_type_cmd[512];
+	char box_type_inflash[255] = "\0";
+	char box_type[255] = "\0";
 
 	omb_log(LOG_DEBUG, "omb_branding_is_compatible: processing %s", base_dir);
 	// we assume that flash image have boxbranding support
-	sprintf(machine_build_inflash_cmd, "%s %s /usr/lib/enigma2/python machine_build", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
-	FILE *fd = popen(machine_build_inflash_cmd, "r");
+	sprintf(box_type_inflash_cmd, "%s %s /usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
+	FILE *fd = popen(box_type_inflash_cmd, "r");
 	if (fd) {
 		char buffer[255];
 		char *line = fgets(buffer, sizeof(buffer), fd);
 		if (line) {
 			strtok(line, "\n");
-			strncpy(machine_build_inflash, line, sizeof(machine_build_inflash));
+			strncpy(box_type_inflash, line, sizeof(box_type_inflash));
 		}
 		pclose(fd);
 	}
 	
-	sprintf(machine_build_cmd, "%s %s %s/usr/lib/enigma2/python machine_build 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
-	fd = popen(machine_build_cmd, "r");
+	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
+	fd = popen(box_type_cmd, "r");
 	if (fd) {
 		char buffer[255];
 		char *line = fgets(buffer, sizeof(buffer), fd);
 		if (line) {
 			strtok(line, "\n");
-			strncpy(machine_build, line, sizeof(machine_build));
+			strncpy(box_type, line, sizeof(box_type));
 		}
 		pclose(fd);
 	}
 
-	if (strlen(machine_build) == 0) {
+	if (strlen(box_type) == 0) {
 		sprintf(fallback_arch_path, "%s/etc/opkg/arch.conf", base_dir);
 		omb_log(LOG_DEBUG, "omb_branding_is_compatible: fallback to %s parsing", fallback_arch_path);
 		FILE *farch = fopen(fallback_arch_path, "r");
@@ -81,8 +81,8 @@ int omb_branding_is_compatible(const char* base_dir)
 					token = strtok(NULL, " \t");
 					i++;
 				}
-				if (!strcmp(array[1],machine_build_inflash)) {
-					strcpy(machine_build,array[1]);
+				if (!strcmp(array[1],box_type_inflash)) {
+					strcpy(box_type,array[1]);
 					break;
 				}
 			}
@@ -90,12 +90,12 @@ int omb_branding_is_compatible(const char* base_dir)
 		}
 		
 	}
-	if (!strcmp(machine_build, machine_build_inflash)) {
-		omb_log(LOG_DEBUG, "omb_branding_is_compatible: machine_build_inflash:%s == machine_build:%s", machine_build_inflash, machine_build);
+	if (!strcmp(box_type, box_type_inflash)) {
+		omb_log(LOG_DEBUG, "omb_branding_is_compatible: box_type_inflash:%s == box_type:%s", box_type_inflash, box_type);
 		return 1;
 	}
 
-	omb_log(LOG_DEBUG, "omb_branding_is_compatible: machine_build_inflash:%s != machine_build:%s", machine_build_inflash, machine_build);
+	omb_log(LOG_DEBUG, "omb_branding_is_compatible: box_type_inflash:%s != box_type:%s", box_type_inflash, box_type);
 	return 0;
 }
 
