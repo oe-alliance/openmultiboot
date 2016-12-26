@@ -305,6 +305,7 @@ int omb_utils_check_lock_menu()
 	char tmp[255];
 	sprintf(tmp, "%s/%s/.bootmenu.lock", OMB_MAIN_DIR, OMB_DATA_DIR);
 	if (omb_utils_file_exists(tmp))
+		omb_log(LOG_DEBUG ,"omb_utils_check_lock_menu: bootmenu disabled!");
 		return 1;
 	
 	return 0;
