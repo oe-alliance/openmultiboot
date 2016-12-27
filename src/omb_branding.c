@@ -35,13 +35,30 @@ int omb_branding_is_compatible(const char* base_dir)
 	char fallback_arch_path[512];
 	char box_type_inflash_cmd[512];
 	char box_type_cmd[512];
+	char brand_oem_cmd[512];
 	char box_type_inflash[255] = "\0";
 	char box_type[255] = "\0";
+	char brand_oem[255] = "\0";
+	FILE *fd;
+
+	// we assume that flash image have boxbranding support
 
 	omb_log(LOG_DEBUG, "omb_branding_is_compatible: processing %s", base_dir);
-	// we assume that flash image have boxbranding support
+	sprintf(brand_oem_cmd, "%s %s /usr/lib/enigma2/python brand_oem", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
+	fd = popen(brand_oem_cmd, "r");
+	if (fd) {
+		char buffer[255];
+		char *line = fgets(buffer, sizeof(buffer), fd);
+		if (line) {
+			strtok(line, "\n");
+			strncpy(brand_oem, line, sizeof(brand_oem));
+		}
+		pclose(fd);
+		omb_log(LOG_DEBUG, "omb_branding_is_compatible: brand_oem = %s", brand_oem);
+	}
+
 	sprintf(box_type_inflash_cmd, "%s %s /usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
-	FILE *fd = popen(box_type_inflash_cmd, "r");
+	fd = popen(box_type_inflash_cmd, "r");
 	if (fd) {
 		char buffer[255];
 		char *line = fgets(buffer, sizeof(buffer), fd);
@@ -50,6 +67,7 @@ int omb_branding_is_compatible(const char* base_dir)
 			strncpy(box_type_inflash, line, sizeof(box_type_inflash));
 		}
 		pclose(fd);
+		omb_log(LOG_DEBUG, "omb_branding_is_compatible: box_type_inflash = %s", box_type_inflash);
 	}
 	
 	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
@@ -62,6 +80,16 @@ int omb_branding_is_compatible(const char* base_dir)
 			strncpy(box_type, line, sizeof(box_type));
 		}
 		pclose(fd);
+		omb_log(LOG_DEBUG, "omb_branding_is_compatible: box_type = %s", box_type);
+	}
+
+	//fix for buggy oe-branding support of some image
+	if (strlen(box_type) != 0 && !strcmp(brand_oem,"vuplus") && strncmp(box_type,"vu",2)) {
+		omb_log(LOG_DEBUG, "omb_branding_is_compatible: buggy image... box_type:%s is invalid", box_type);
+		char buffer[255];
+		strcpy(buffer,box_type);
+		sprintf(box_type, "vu%s",buffer);
+		omb_log(LOG_DEBUG, "omb_branding_is_compatible: patched box_type:%s should be ok", box_type);
 	}
 
 	if (strlen(box_type) == 0) {

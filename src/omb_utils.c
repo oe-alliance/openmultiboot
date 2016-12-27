@@ -341,13 +341,14 @@ void omb_utils_save_int(const char* key, int value)
 
 int omb_utils_read_int(const char *key)
 {
+	int ret = 0;
 	char *tmp = omb_utils_read(key);
 	if (tmp) {
-		int ret = atoi(tmp);
+		ret = atoi(tmp);
 		free(tmp);
-		return ret;
 	}
-	return 0;
+	omb_log(LOG_DEBUG, "omb_utils_read_int: selected %d", ret);
+	return ret;
 }
 
 void omb_utils_build_vu_wrapper(omb_device_item *item)
@@ -453,7 +454,7 @@ void omb_utils_load_modules(omb_device_item *item)
 {
 	int i;
 	
-	omb_log(LOG_DEBUG, "load modules");
+	omb_log(LOG_DEBUG, "omb_utils_load_modules(): load modules");
 
 	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
 		system(OMB_MODUTILS_BIN);
@@ -499,7 +500,7 @@ void omb_utils_load_modules(omb_device_item *item)
  */
 void omb_utils_load_modules_vugl(omb_device_item *item)
 {	
-	omb_log(LOG_DEBUG, "load vuplus-platform-util");
+	omb_log(LOG_DEBUG, "omb_utils_load_modules_vugl(): load vuplus-platform-util");
 	
 	int i;
 
@@ -577,6 +578,7 @@ void omb_utils_backup_kernel(omb_device_item *item)
 	sprintf(cmd, "%s %s -f %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 #endif
 	system(cmd);
+//	omb_log(LOG_DEBUG, "omb_utils_backup_kernel(): cmd: %s");
 }
 
 void omb_utils_restore_kernel(omb_device_item *item)

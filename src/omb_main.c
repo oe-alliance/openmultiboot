@@ -241,7 +241,9 @@ int main(int argc, char *argv[])
 		int force = omb_utils_read_int(OMB_SETTINGS_FORCE);
 		if (!force && items) 
 		{
+			omb_log(LOG_DEBUG, "main(): preparing environment...");	
 			if (!lock_menu) {
+				omb_log(LOG_DEBUG, "main(): loading modules...");
 				omb_utils_load_modules(item);
 				if (!omb_utils_file_exists(OMB_VIDEO_DEVICE)) {
 					omb_utils_load_modules_vugl(item);
@@ -261,6 +263,7 @@ int main(int argc, char *argv[])
 			}
 			
 			if (!lock_menu) {
+				omb_log(LOG_DEBUG, "main(): menu enabled");
 				FILE *fvu = fopen("/proc/stb/info/vumodel", "r");
 				if (fvu) {
 					char tmp[63];
@@ -269,11 +272,14 @@ int main(int argc, char *argv[])
 					}
 					fclose(fvu);
 				}
-				printf("boxmodel: %s\n", omb_vumodel);
+				omb_log(LOG_DEBUG, "boxmodel: %s", omb_vumodel);
 				omb_show_menu();
+			} else {
+				omb_log(LOG_DEBUG, "main(): menu disabled");
 			}
 		}
 		else {
+			omb_log(LOG_DEBUG, "main(): omb_utils_save_int(OMB_SETTINGS_FORCE, 0");
 			omb_utils_save_int(OMB_SETTINGS_FORCE, 0);
 		}
 
