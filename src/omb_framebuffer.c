@@ -149,7 +149,7 @@ int omb_make_palette()
 		colormap.blue[i]  = (bs * ((i) % b)) * 255;
 	}
 
-	omb_log(LOG_DEBUG, "%-33s, set color palette disabled: FIXME !!", __FUNCTION__);
+	omb_log(LOG_DEBUG, "%-33s(), set color palette disabled: FIXME !!", __FUNCTION__);
 // FIXME
 /*	
 	if (ioctl(omb_fb_fd, FBIOPUTCMAP, &colormap) == -1) {

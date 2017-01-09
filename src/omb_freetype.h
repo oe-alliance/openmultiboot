@@ -39,6 +39,6 @@ void omb_deinit_freetype();
 int omb_render_symbol(int code, int x, int y, int width, int color, int font_size, int align);
 int omb_render_lcd_symbol(int code, int x, int y, int width, int color, int font_size, int align);
 int omb_render_text(const char* text, int x, int y, int width, int color, int font_size, int align);
-int omb_render_lcd_text(const char* text, int x, int y, int width, int color, int font_size, int align);
+int omb_render_lcd_text(const char* text, int x, int y, int width, int color, int font_size, int align, int small_lcd);
 
 #endif // _OMB_FREETYPE_H_

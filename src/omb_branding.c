@@ -29,19 +29,12 @@
 #include "omb_branding.h"
 #include "omb_utils.h"
 
+extern char *brand_oem;
 
-int omb_branding_is_compatible(const char* base_dir)
-{
-	char fallback_arch_path[512];
-	char box_type_inflash_cmd[512];
-	char box_type_cmd[512];
+char * omb_branding_get_brand_oem(const char* base_dir) {
 	char brand_oem_cmd[512];
-	char box_type_inflash[255] = "\0";
-	char box_type[255] = "\0";
-	char brand_oem[255] = "\0";
+	char *p_brand_oem;
 	FILE *fd;
-
-	// we assume that flash image have boxbranding support
 
 	omb_log(LOG_DEBUG, "%-33s: processing %s", __FUNCTION__, base_dir);
 	sprintf(brand_oem_cmd, "%s %s /usr/lib/enigma2/python brand_oem", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
@@ -51,50 +44,66 @@ int omb_branding_is_compatible(const char* base_dir)
 		char *line = fgets(buffer, sizeof(buffer), fd);
 		if (line) {
 			strtok(line, "\n");
-			strncpy(brand_oem, line, sizeof(brand_oem));
+			p_brand_oem = malloc(strlen(line) + 1);
+			strcpy(p_brand_oem, line);
 		}
 		pclose(fd);
-		omb_log(LOG_DEBUG, "%-33s: brand_oem = %s", __FUNCTION__, brand_oem);
+		omb_log(LOG_DEBUG, "%-33s: brand_oem = %s", __FUNCTION__, p_brand_oem);
 	}
+	return p_brand_oem;
+}
 
-	sprintf(box_type_inflash_cmd, "%s %s /usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
-	fd = popen(box_type_inflash_cmd, "r");
-	if (fd) {
-		char buffer[255];
-		char *line = fgets(buffer, sizeof(buffer), fd);
-		if (line) {
-			strtok(line, "\n");
-			strncpy(box_type_inflash, line, sizeof(box_type_inflash));
-		}
-		pclose(fd);
-		omb_log(LOG_DEBUG, "%-33s: box_type_inflash = %s", __FUNCTION__, box_type_inflash);
-	}
-	
-	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
+char * omb_branding_get_box_type(const char* base_dir) {
+
+	char box_type_cmd[512];
+	char *p_box_type;
+	p_box_type = malloc(1);
+	p_box_type[0] = 0;
+
+	FILE *fd;
+
+	omb_log(LOG_DEBUG, "%-33s: processing %s (%s)", __FUNCTION__, base_dir, brand_oem);
+	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
 	fd = popen(box_type_cmd, "r");
 	if (fd) {
 		char buffer[255];
 		char *line = fgets(buffer, sizeof(buffer), fd);
 		if (line) {
 			strtok(line, "\n");
-			strncpy(box_type, line, sizeof(box_type));
+			p_box_type = realloc(p_box_type,strlen(line) + 1);
+			strcpy(p_box_type, line);
 		}
 		pclose(fd);
-		omb_log(LOG_DEBUG, "%-33s: box_type = %s",__FUNCTION__,  box_type);
+		omb_log(LOG_DEBUG, "%-33s: box_type = %s", __FUNCTION__, p_box_type);
 	}
 
 	//fix for buggy oe-branding support of some image
-	if (strlen(box_type) != 0 && !strcmp(brand_oem,"vuplus") && strncmp(box_type,"vu",2)) {
-		omb_log(LOG_DEBUG, "%-33s: buggy image... box_type:%s is invalid", __FUNCTION__, box_type);
+	if (strlen(p_box_type) != 0 && !strcmp(brand_oem,"vuplus") && strncmp(p_box_type,"vu",2)) {
+		omb_log(LOG_DEBUG, "%-33s: buggy image... box_type:%s is invalid", __FUNCTION__, p_box_type);
 		char buffer[255];
-		strcpy(buffer,box_type);
-		sprintf(box_type, "vu%s",buffer);
-		omb_log(LOG_DEBUG, "%-33s: patched box_type:%s should be ok", __FUNCTION__, box_type);
+		strcpy(buffer,p_box_type);
+		p_box_type = realloc(p_box_type,strlen(p_box_type) + 3);
+		sprintf(p_box_type, "vu%s",buffer);
+		omb_log(LOG_DEBUG, "%-33s: patched box_type:%s should be ok", __FUNCTION__, p_box_type);
+	}
+	return p_box_type;
+}
+
+int omb_branding_is_compatible(const char* base_dir, const char* flash_box_type, const char* box_type)
+{
+	// if box_type is empty, probably the image isn't a boxbranded image... so apply a fix
+	omb_log(LOG_DEBUG, "%-33s: comparing %s with %s", __FUNCTION__, flash_box_type, box_type);
+
+	char fallback_arch_path[512];
+
+	if (!strcmp(box_type, flash_box_type)) {
+		omb_log(LOG_DEBUG, "%-33s: flash_box_type:%s == box_type:%s", __FUNCTION__, flash_box_type, box_type);
+		return 1;
 	}
 
 	if (strlen(box_type) == 0) {
 		sprintf(fallback_arch_path, "%s/etc/opkg/arch.conf", base_dir);
-		omb_log(LOG_DEBUG, "%-33s: fallback to %s parsing", __FUNCTION__, fallback_arch_path);
+		omb_log(LOG_DEBUG, "omb_branding_get_box_type: fallback to %s parsing", __FUNCTION__, fallback_arch_path);
 		FILE *farch = fopen(fallback_arch_path, "r");
 		if (farch) {
 			char buffer[255];
@@ -109,21 +118,18 @@ int omb_branding_is_compatible(const char* base_dir)
 					token = strtok(NULL, " \t");
 					i++;
 				}
-				if (!strcmp(array[1],box_type_inflash)) {
-					strcpy(box_type,array[1]);
-					break;
+				if (!strcmp(array[1],flash_box_type)) {
+					omb_log(LOG_DEBUG, "%-33s: flash_box_type:%s == box_type:%s (workaround)", __FUNCTION__, flash_box_type, array[1]);
+					//strcpy(box_type,array[1]);
+					//break;
+					return 1;
 				}
 			}
 			fclose(farch);
 		}
-		
-	}
-	if (!strcmp(box_type, box_type_inflash)) {
-		omb_log(LOG_DEBUG, "%-33s: box_type_inflash:%s == box_type:%s", __FUNCTION__, box_type_inflash, box_type);
-		return 1;
 	}
 
-	omb_log(LOG_DEBUG, "%-33s: box_type_inflash:%s != box_type:%s", __FUNCTION__, box_type_inflash, box_type);
+	omb_log(LOG_DEBUG, "%-33s: flash_box_type:%s != box_type:%s", __FUNCTION__, flash_box_type, box_type);
 	return 0;
 }
 
@@ -145,6 +151,8 @@ omb_device_item *omb_branding_read_info(const char* base_dir, const char *identi
 	item->next = NULL;
 	strcpy(item->directory, base_dir);
 	strcpy(item->identifier, identifier);
+
+	item->box_type = omb_branding_get_box_type(base_dir); // we use the malloc of the function
 	
 	if (!settings_value) {
 		version[0] = name[0] = '\0';
@@ -177,17 +185,23 @@ omb_device_item *omb_branding_read_info(const char* base_dir, const char *identi
 			strcpy(name, identifier);
 		
 		item->label = malloc(strlen(name) + strlen(version) + 10);
-		if (strcmp(identifier, "flash") == 0)
+		if (strcmp(identifier, "flash") == 0) {
 			sprintf(item->label, "%s %s (flash)", name, version);
-		else
+			item->is_inflash = 1;
+		} else{
 			sprintf(item->label, "%s %s", name, version);
+			item->is_inflash = 0;
+		}
 	}
 	else {
 		item->label = malloc(strlen(settings_value) + 9);
-		if (strcmp(identifier, "flash") == 0)
+		if (strcmp(identifier, "flash") == 0) {
 			sprintf(item->label, "%s (flash)", settings_value);
-		else
+			item->is_inflash = 1;
+		} else {
 			sprintf(item->label, "%s", settings_value);
+			item->is_inflash = 0;
+		}
 		free(settings_value);
 	}
 		

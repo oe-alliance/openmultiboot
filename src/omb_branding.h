@@ -23,10 +23,14 @@
 #ifndef _OMB_BRANDING_H_
 #define _OMB_BRANDING_H_
 
-#include "omb_utils.h"	
+#include "omb_utils.h"
 
-int omb_branding_is_compatible(const char* base_dir);
+//extern char * p_brand_oem;
 
+int omb_branding_is_compatible(const char* base_dir, const char* flash_box_type, const char* box_type);
+
+char * omb_branding_get_brand_oem(const char* base_dir);
+char * omb_branding_get_box_type(const char* base_dir);
 omb_device_item *omb_branding_read_info(const char* base_dir, const char *identifier);
 
 #endif // _OMB_BRANDING_H_

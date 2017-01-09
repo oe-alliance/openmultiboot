@@ -42,8 +42,10 @@ int omb_utils_dir_exists(const char* folder)
 	DIR *fd = opendir(folder);
 	if (fd) {
 		closedir(fd);
+		omb_log(LOG_DEBUG, "%-33s: %s exists", __FUNCTION__, folder);
 		return 1;
 	}
+	omb_log(LOG_DEBUG, "%-33s: %s doesn't exists", __FUNCTION__, folder);
 	return 0;
 }
 
@@ -72,7 +74,16 @@ int omb_utils_mount(const char* device, const char* mountpoint)
 		if (mount(device, mountpoint, omb_utils_fs_types[i], 0, NULL) == 0)
 			return OMB_SUCCESS;
 	
+#if defined(__i386__) || defined(__x86_64__)
+	/*
+	 * - create multiple /omb/open-multiboot/<image>/etc/issue 
+	 * - patch open-multiboot-branding-helper.py
+	 * - add -D OMB_BRANDING_HELPER_BIN='"/tmp/sbin/open-multiboot-branding-helper.py"'
+	 */
+	return OMB_SUCCESS; 
+#else
 	return OMB_ERROR;
+#endif
 }
 
 int omb_utils_is_mounted(const char *mountpoint)
@@ -197,18 +208,18 @@ omb_device_item *omb_utils_get_images()
 
 	sprintf(datadir, "%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR);
 	fd = opendir(datadir);
-	if (fd) {
+	if (fd) {		
 		while ((dir = readdir(fd)) != NULL) {
 			if (strlen(dir->d_name) > 0 && dir->d_name[0] != '.') {
 				char base_dir[255];
 				sprintf(base_dir, "%s/%s", datadir, dir->d_name);
 
-				if (!omb_branding_is_compatible(base_dir)) {
+				omb_device_item *item = omb_branding_read_info(base_dir, dir->d_name);
+				if (!omb_branding_is_compatible(base_dir, first->box_type, item->box_type)) {
 					omb_log(LOG_DEBUG ,"%-33s: skipping image %s", __FUNCTION__, base_dir);
 					continue;
 				}
 
-				omb_device_item *item = omb_branding_read_info(base_dir, dir->d_name);
 				if (item != NULL) {
 					if (first == NULL)
 						first = item;
@@ -233,6 +244,7 @@ void omb_utils_free_items(omb_device_item *items)
 		free(tmp2->label);
 		free(tmp2->directory);
 		free(tmp2->identifier);
+		free(tmp2->box_type);
 		free(tmp2);
 	}
 }
@@ -564,20 +576,30 @@ void omb_utils_load_modules_vugl(omb_device_item *item)
 void omb_utils_backup_kernel(omb_device_item *item)
 {
 	char cmd[512];
+	char * dumpfile;
 
 	if (!item)
 		return;
-	
-	omb_log(LOG_DEBUG, "%-33s: backup kernel for image '%s'", __FUNCTION__, item->identifier);
+
+	if (item->is_inflash == 1) {
+		dumpfile = malloc(strlen(item->identifier) + 1 + strlen(item->box_type) + 1);
+		sprintf(dumpfile, "%s-%s", item->identifier, item->box_type);
+	} else {
+		dumpfile = malloc(strlen(item->identifier) + 1);
+		sprintf(dumpfile, "%s-%s", item->identifier);
+	}
+
+	omb_log(LOG_DEBUG, "%-33s: backup kernel for image '%s'", __FUNCTION__, dumpfile);
 #ifdef OMB_DREAMBOX
-	sprintf(cmd, "%s %s -nof %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	sprintf(cmd, "%s %s -nof %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #elif defined(OMB_MMCBLK)
 	if (omb_utils_file_exists(OMB_PROC_STB))
-		sprintf(cmd, "%s if=%s of=%s/%s/.kernels/%s.bin", OMB_DD_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(cmd, "%s if=%s of=%s/%s/.kernels/%s.bin", OMB_DD_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #else
-	sprintf(cmd, "%s %s -f %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	sprintf(cmd, "%s %s -f %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #endif
 	system(cmd);
+	free(dumpfile);
 //	omb_log(LOG_DEBUG, "omb_utils_backup_kernel(): cmd: %s");
 }
 
@@ -585,11 +607,20 @@ void omb_utils_restore_kernel(omb_device_item *item)
 {
 	char cmd[512];
 	char filename[255];
+	char * dumpfile;
 
 	if (!item)
 		return;
 	
-	sprintf(filename, "%s/%s/.kernels/%s.bin", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	if (item->is_inflash == 1) {
+		dumpfile = malloc(strlen(item->identifier) + 1 + strlen(item->box_type) + 1);
+		sprintf(dumpfile, "%s-%s", item->identifier, item->box_type);
+	} else {
+		dumpfile = malloc(strlen(item->identifier) + 1);
+		sprintf(dumpfile, "%s-%s", item->identifier);
+	}
+
+	sprintf(filename, "%s/%s/.kernels/%s.bin", OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 	if (omb_utils_file_exists(filename)) {
 #ifndef OMB_MMCBLK
 		omb_log(LOG_DEBUG, "%-33s: erasing MTD", __FUNCTION__);
@@ -597,17 +628,18 @@ void omb_utils_restore_kernel(omb_device_item *item)
 		system(cmd);
 #endif
 	
-		omb_log(LOG_DEBUG, "%-33s: restore kernel for image '%s'", __FUNCTION__, item->identifier);
+		omb_log(LOG_DEBUG, "%-33s: restore kernel for image '%s'", __FUNCTION__, dumpfile);
 #ifdef OMB_DREAMBOX
-		sprintf(cmd, "%s -mno %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(cmd, "%s -mno %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #elif defined(OMB_MMCBLK)
 		if (omb_utils_file_exists(OMB_PROC_STB))
-			sprintf(cmd, "%s of=%s if=%s/%s/.kernels/%s.bin", OMB_DD_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+			sprintf(cmd, "%s of=%s if=%s/%s/.kernels/%s.bin", OMB_DD_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #else
-		sprintf(cmd, "%s -pm %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(cmd, "%s -pm %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #endif
 		system(cmd);
 	}
+	free(dumpfile);
 }
 
 void omb_utils_reboot()

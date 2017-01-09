@@ -35,11 +35,12 @@
 #include "omb_input.h"
 #include "omb_utils.h"
 #include "omb_menu.h"
+#include "omb_branding.h"
 
 static int omb_timer_enabled;
 static int omb_current_timer;
 static int omb_timer;
-char omb_vumodel[63];
+char *brand_oem;
 
 void omb_draw_header()
 {
@@ -62,7 +63,7 @@ void omb_draw_header()
 		OMB_TEXT_ALIGN_LEFT);
 }
 
-void omb_draw_lcd()
+void omb_draw_lcd(int small_lcd, const char *brand_oem)
 {
 	char tmp[255];
 	sprintf(tmp, "%s %s", OMB_DISPLAY_NAME, OMB_APP_VERION);
@@ -75,20 +76,20 @@ void omb_draw_lcd()
 	int title_y = omb_lcd_get_height() * OMB_LCD_TITLE_Y;
 	int title_size = omb_lcd_get_width() * OMB_LCD_TITLE_SIZE;
 
-	if (! strcmp(omb_vumodel,""))
-	omb_render_lcd_symbol(OMB_SYMBOL_LOGO,
-		logo_x,
-		logo_y,
-		0,
-		OMB_LCD_LOGO_COLOR,
-		logo_size,
-		OMB_TEXT_ALIGN_LEFT);
-	else {
-		if (! strcmp(omb_vumodel,"duo2"))
+	if (! strcmp(brand_oem, "vuplus")) {
+		if (small_lcd == 1)
 			title_y += 2;
 
 		sprintf(tmp, "VU+ %s %s", OMB_DISPLAY_NAME, OMB_APP_VERION);
 		title_x = logo_x;
+	} else {
+		omb_render_lcd_symbol(OMB_SYMBOL_LOGO,
+			logo_x,
+			logo_y,
+			0,
+			OMB_LCD_LOGO_COLOR,
+			logo_size,
+			OMB_TEXT_ALIGN_LEFT);
 	}
 	omb_render_lcd_text(tmp,
 		title_x,
@@ -96,7 +97,8 @@ void omb_draw_lcd()
 		0,
 		OMB_LCD_TITLE_COLOR,
 		title_size,
-		OMB_TEXT_ALIGN_LEFT);
+		OMB_TEXT_ALIGN_LEFT,
+		small_lcd);
 }
 
 void omb_draw_timer()
@@ -114,21 +116,21 @@ void omb_draw_timer()
 	}
 }
 
-void omb_refresh_gui()
+void omb_refresh_gui(int small_lcd, const char *brand_oem)
 {
 	omb_clear_screen();
 	omb_lcd_clear();
 	
-	omb_draw_lcd();
+	omb_draw_lcd(small_lcd, brand_oem);
 	omb_draw_header();
 	omb_draw_timer();
-	omb_menu_render();
+	omb_menu_render(small_lcd);
 	
 	omb_blit();
 	omb_lcd_update();
 }
 
-int omb_show_menu()
+int omb_show_menu(int small_lcd, const char *brand_oem)
 {
 	struct timeval start, end;
 	
@@ -148,7 +150,7 @@ int omb_show_menu()
 	omb_current_timer = omb_timer;
 	gettimeofday(&start, NULL);
 	
-	omb_refresh_gui();
+	omb_refresh_gui(small_lcd, brand_oem);
 	
 	for(;;) {
 		usleep(20000);
@@ -185,7 +187,7 @@ int omb_show_menu()
 		}
 		
 		if (need_refresh_gui)
-			omb_refresh_gui();
+			omb_refresh_gui(small_lcd, brand_oem);
 		
 		
 		if (omb_current_timer == 0)
@@ -209,19 +211,19 @@ int omb_show_menu()
 int main(int argc, char *argv[]) 
 {
 	int is_rebooting = 0;
+	int small_lcd = 0;
 
 	if (argc > 1 && getppid() > 1) {
 		omb_utils_sysvinit(NULL, argv[1]);
 	}
 	else {
-		omb_vumodel[0] = '\0';
-
 		omb_utils_init_system();
 		omb_device_item *item = NULL;
 		omb_device_item *items = NULL;
 		char *selected = NULL;
 		char *nextboot = NULL;
 		if (omb_utils_find_and_mount() == OMB_SUCCESS) {
+			brand_oem = omb_branding_get_brand_oem("/"); // in omb_menu "/" should be always the flash
 			items = omb_utils_get_images();
 			omb_menu_set(items);
 			selected = omb_utils_read(OMB_SETTINGS_SELECTED);
@@ -264,16 +266,12 @@ int main(int argc, char *argv[])
 			
 			if (!lock_menu) {
 				omb_log(LOG_DEBUG, "%-33s: menu enabled", __FUNCTION__);
-				FILE *fvu = fopen("/proc/stb/info/vumodel", "r");
-				if (fvu) {
-					char tmp[63];
-					if (fscanf(fvu, "%s", &tmp) == 1) {
-						strcpy(omb_vumodel, tmp);
-					}
-					fclose(fvu);
-				}
-				omb_log(LOG_DEBUG, "%-33s: boxmodel: %s", __FUNCTION__, omb_vumodel);
-				omb_show_menu();
+				omb_log(LOG_DEBUG, "%-33s: item->box_type: %s", __FUNCTION__, item->box_type);
+
+				if (!strcmp(item->box_type,"vuduo") || !strcmp(item->box_type,"bm750"))
+					small_lcd = 1;
+
+				omb_show_menu(small_lcd, brand_oem);
 			} else {
 				omb_log(LOG_DEBUG, "%-33s: menu disabled", __FUNCTION__);
 			}
