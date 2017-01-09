@@ -43,7 +43,7 @@ int omb_branding_is_compatible(const char* base_dir)
 
 	// we assume that flash image have boxbranding support
 
-	omb_log(LOG_DEBUG, "%s(): processing %s", __FUNCTION__, base_dir);
+	omb_log(LOG_DEBUG, "%-33s: processing %s", __FUNCTION__, base_dir);
 	sprintf(brand_oem_cmd, "%s %s /usr/lib/enigma2/python brand_oem", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
 	fd = popen(brand_oem_cmd, "r");
 	if (fd) {
@@ -54,7 +54,7 @@ int omb_branding_is_compatible(const char* base_dir)
 			strncpy(brand_oem, line, sizeof(brand_oem));
 		}
 		pclose(fd);
-		omb_log(LOG_DEBUG, "%s(): brand_oem = %s", __FUNCTION__, brand_oem);
+		omb_log(LOG_DEBUG, "%-33s: brand_oem = %s", __FUNCTION__, brand_oem);
 	}
 
 	sprintf(box_type_inflash_cmd, "%s %s /usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
@@ -67,7 +67,7 @@ int omb_branding_is_compatible(const char* base_dir)
 			strncpy(box_type_inflash, line, sizeof(box_type_inflash));
 		}
 		pclose(fd);
-		omb_log(LOG_DEBUG, "%s(): box_type_inflash = %s", __FUNCTION__, box_type_inflash);
+		omb_log(LOG_DEBUG, "%-33s: box_type_inflash = %s", __FUNCTION__, box_type_inflash);
 	}
 	
 	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
@@ -80,21 +80,21 @@ int omb_branding_is_compatible(const char* base_dir)
 			strncpy(box_type, line, sizeof(box_type));
 		}
 		pclose(fd);
-		omb_log(LOG_DEBUG, "%s(): box_type = %s",__FUNCTION__,  box_type);
+		omb_log(LOG_DEBUG, "%-33s: box_type = %s",__FUNCTION__,  box_type);
 	}
 
 	//fix for buggy oe-branding support of some image
 	if (strlen(box_type) != 0 && !strcmp(brand_oem,"vuplus") && strncmp(box_type,"vu",2)) {
-		omb_log(LOG_DEBUG, "%s(): buggy image... box_type:%s is invalid", __FUNCTION__, box_type);
+		omb_log(LOG_DEBUG, "%-33s: buggy image... box_type:%s is invalid", __FUNCTION__, box_type);
 		char buffer[255];
 		strcpy(buffer,box_type);
 		sprintf(box_type, "vu%s",buffer);
-		omb_log(LOG_DEBUG, "%s(): patched box_type:%s should be ok", __FUNCTION__, box_type);
+		omb_log(LOG_DEBUG, "%-33s: patched box_type:%s should be ok", __FUNCTION__, box_type);
 	}
 
 	if (strlen(box_type) == 0) {
 		sprintf(fallback_arch_path, "%s/etc/opkg/arch.conf", base_dir);
-		omb_log(LOG_DEBUG, "%s(): fallback to %s parsing", __FUNCTION__, fallback_arch_path);
+		omb_log(LOG_DEBUG, "%-33s: fallback to %s parsing", __FUNCTION__, fallback_arch_path);
 		FILE *farch = fopen(fallback_arch_path, "r");
 		if (farch) {
 			char buffer[255];
@@ -119,11 +119,11 @@ int omb_branding_is_compatible(const char* base_dir)
 		
 	}
 	if (!strcmp(box_type, box_type_inflash)) {
-		omb_log(LOG_DEBUG, "%s(): box_type_inflash:%s == box_type:%s", __FUNCTION__, box_type_inflash, box_type);
+		omb_log(LOG_DEBUG, "%-33s: box_type_inflash:%s == box_type:%s", __FUNCTION__, box_type_inflash, box_type);
 		return 1;
 	}
 
-	omb_log(LOG_DEBUG, "%s(): box_type_inflash:%s != box_type:%s", __FUNCTION__, box_type_inflash, box_type);
+	omb_log(LOG_DEBUG, "%-33s: box_type_inflash:%s != box_type:%s", __FUNCTION__, box_type_inflash, box_type);
 	return 0;
 }
 
