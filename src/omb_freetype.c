@@ -58,21 +58,21 @@ int omb_init_freetype()
 	if (strcmp(omb_vumodel,"duo2")) {
 		//omb_log(LOG_DEBUG, "omb_init_freetype omb_segoe_ui_font");
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_segoe_ui_font, omb_segoe_ui_font_length, 0, &omb_freetype_face) != 0) {
-			omb_log(LOG_ERROR, "cannot open base font");
+			omb_log(LOG_ERROR, "%s(): cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
 		}
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_segoe_ui_font, omb_segoe_ui_font_length, 0, &omb_freetype_lcd_face) != 0) {
-			omb_log(LOG_ERROR, "cannot open base font");
+			omb_log(LOG_ERROR, "%s(): cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
 		}
 	} else {
 		//omb_log(LOG_DEBUG, "omb_init_freetype omb_lcddot_font");
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_segoe_ui_font, omb_segoe_ui_font_length, 0, &omb_freetype_face) != 0) {
-			omb_log(LOG_ERROR, "cannot open base font");
+			omb_log(LOG_ERROR, "%s(): cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
 		}
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_lcddot_font, omb_lcddot_font_length, 0, &omb_freetype_lcd_face) != 0) {
-			omb_log(LOG_ERROR, "cannot open base font");
+			omb_log(LOG_ERROR, "%s(): cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
 		}
 	}

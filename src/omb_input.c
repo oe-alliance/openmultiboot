@@ -52,11 +52,11 @@ int omb_input_open()
 
 	if (omb_input_num_fds == 0)
 	{
-		omb_log(LOG_ERROR, "cannot open input device");
+		omb_log(LOG_ERROR, "%s(): cannot open input device", __FUNCTION__);
 		return OMB_ERROR;
 	}
 
-	omb_log(LOG_DEBUG, "input device opened");
+	omb_log(LOG_DEBUG, "%s(): input device opened", __FUNCTION__);
 	
 	return OMB_SUCCESS;
 }
