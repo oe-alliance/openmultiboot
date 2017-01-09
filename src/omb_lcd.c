@@ -76,7 +76,7 @@ int omb_lcd_open()
 	if (omb_lcd_fd == -1)
 		omb_lcd_fd = open("/dev/oled0", O_RDWR);
 	if (omb_lcd_fd == -1) {
-		omb_log(LOG_ERROR, "cannot open lcd device");
+		omb_log(LOG_ERROR, "%s(): cannot open lcd device", __FUNCTION__);
 		return OMB_ERROR;
 	}
 
@@ -86,7 +86,7 @@ int omb_lcd_open()
 
 	int tmp = LCD_MODE_BIN;
 	if (ioctl(omb_lcd_fd, LCD_IOCTL_ASC_MODE, &tmp)) {
-		omb_log(LOG_ERROR, "failed to set lcd bin mode");
+		omb_log(LOG_ERROR, "%s(): failed to set lcd bin mode", __FUNCTION__);
 #ifndef OMB_DREAMBOX
 		return OMB_ERROR;
 #endif
@@ -94,25 +94,25 @@ int omb_lcd_open()
 	
 	omb_lcd_width = omb_lcd_read_value(OMB_LCD_XRES);
 	if (omb_lcd_width == 0) {
-		omb_log(LOG_ERROR, "cannot read lcd x resolution");
+		omb_log(LOG_ERROR, "%s(): cannot read lcd x resolution", __FUNCTION__);
 		return OMB_ERROR;
 	}
 	
 	omb_lcd_height = omb_lcd_read_value(OMB_LCD_YRES);
 	if (omb_lcd_height == 0) {
-		omb_log(LOG_ERROR, "cannot read lcd y resolution");
+		omb_log(LOG_ERROR, "%s(): cannot read lcd y resolution", __FUNCTION__);
 		return OMB_ERROR;
 	}
 	omb_lcd_bpp = omb_lcd_read_value(OMB_LCD_BPP);
 	if (omb_lcd_bpp == 0) {
-		omb_log(LOG_ERROR, "cannot read lcd bpp");
+		omb_log(LOG_ERROR, "%s(): cannot read lcd bpp", __FUNCTION__);
 		return OMB_ERROR;
 	}
 	
 	omb_lcd_stride = omb_lcd_width * (omb_lcd_bpp / 8);
 	omb_lcd_buffer = malloc(omb_lcd_height * omb_lcd_stride);
 	
-	omb_log(LOG_DEBUG, "current lcd is %dx%d, %dbpp, stride %d", omb_lcd_width, omb_lcd_height, omb_lcd_bpp, omb_lcd_stride);
+	omb_log(LOG_DEBUG, "%s(): current lcd is %dx%d, %dbpp, stride %d", __FUNCTION__, omb_lcd_width, omb_lcd_height, omb_lcd_bpp, omb_lcd_stride);
 
 
 	//vusolo4k and vuultimo4k need a brightness to enable lcd

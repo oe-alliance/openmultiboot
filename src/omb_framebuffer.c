@@ -58,16 +58,16 @@ static int omb_screen_size;
 int omb_read_screen_info()
 {
 	if (ioctl(omb_fb_fd, FBIOGET_FSCREENINFO, &omb_fix_screen_info) == -1) {
-		omb_log(LOG_ERROR, "cannot read fixed information");
+		omb_log(LOG_ERROR, "%s(): cannot read fixed information", __FUNCTION__);
 		return OMB_ERROR;
 	}
 
 	if (ioctl(omb_fb_fd, FBIOGET_VSCREENINFO, &omb_var_screen_info) == -1) {
-		omb_log(LOG_ERROR, "cannot read variable information");
+		omb_log(LOG_ERROR, "%s(): cannot read variable information", __FUNCTION__);
 		return OMB_ERROR;
 	}
 
-	omb_log(LOG_DEBUG, "current mode is %dx%d, %dbpp, stride %d",
+	omb_log(LOG_DEBUG, "%s(): current mode is %dx%d, %dbpp, stride %d", __FUNCTION__,
 		omb_var_screen_info.xres, omb_var_screen_info.yres, omb_var_screen_info.bits_per_pixel, omb_fix_screen_info.line_length);
 	
 	omb_screen_size = omb_fix_screen_info.smem_len;//omb_var_screen_info.xres * omb_var_screen_info.yres * omb_var_screen_info.bits_per_pixel / 8;
@@ -90,19 +90,19 @@ int omb_set_screen_info(int width, int height, int bpp)
 
 #ifndef __sh__
 	if (ioctl(omb_fb_fd, FBIOPUT_VSCREENINFO, &omb_var_screen_info) < 0) {
-		omb_log(LOG_ERROR, "cannot set variable information");
+		omb_log(LOG_ERROR, "%s(): cannot set variable information", __FUNCTION__);
 		return OMB_ERROR;
 	}
 #endif
 	
 	if ((omb_var_screen_info.xres != width) && (omb_var_screen_info.yres != height) && (omb_var_screen_info.bits_per_pixel != bpp)) {
-		omb_log(LOG_ERROR, "cannot set variable information: got %dx%dx%d instead of %dx%dx%d",
+		omb_log(LOG_ERROR, "%s(): cannot set variable information: got %dx%dx%d instead of %dx%dx%d", __FUNCTION__,
 			omb_var_screen_info.xres, omb_var_screen_info.yres, omb_var_screen_info.bits_per_pixel, width, height, bpp);
 		return OMB_ERROR;
 	}
 	
 	if (ioctl(omb_fb_fd, FBIOGET_FSCREENINFO, &omb_fix_screen_info) == -1) {
-		omb_log(LOG_ERROR, "cannot read fixed information");
+		omb_log(LOG_ERROR, "%s(): cannot read fixed information", __FUNCTION__);
 		return OMB_ERROR;
 	}
 	
@@ -121,7 +121,7 @@ int omb_map_framebuffer()
 		return OMB_ERROR;
 	}
 	
-	omb_log(LOG_DEBUG, "the framebuffer device was mapped to memory successfully");
+	omb_log(LOG_DEBUG, "%s(): the framebuffer device was mapped to memory successfully", __FUNCTION__);
 	
 	return OMB_SUCCESS;
 }
@@ -149,7 +149,7 @@ int omb_make_palette()
 		colormap.blue[i]  = (bs * ((i) % b)) * 255;
 	}
 
-	omb_log(LOG_DEBUG, "set color palette disabled: FIXME !!");
+	omb_log(LOG_DEBUG, "%s(), set color palette disabled: FIXME !!", __FUNCTION__);
 // FIXME
 /*	
 	if (ioctl(omb_fb_fd, FBIOPUTCMAP, &colormap) == -1) {
@@ -163,7 +163,7 @@ int omb_make_palette()
 
 int omb_set_manual_blit()
 {
-	omb_log(LOG_DEBUG, "set manual blit");
+	omb_log(LOG_DEBUG, "%s(): set manual blit", __FUNCTION__);
 	
 #ifndef __sh__
 	unsigned char tmp = 1;
@@ -199,12 +199,12 @@ void omb_blit()
 	bltData.dst_right  = omb_var_screen_info.xres;
 	bltData.dst_bottom = omb_var_screen_info.yres;
 	if (ioctl(omb_fb_fd, STMFBIO_BLT, &bltData ) < 0)
-		omb_log(LOG_WARNING, "cannot blit the framebuffer");
+		omb_log(LOG_WARNING, "%s(): cannot blit the framebuffer", __FUNCTION__);
 	if (ioctl(omb_fb_fd, STMFBIO_SYNC_BLITTER) < 0)
-		omb_log(LOG_WARNING, "cannot sync blit");
+		omb_log(LOG_WARNING, "%s(): cannot sync blit", __FUNCTION__);
 #else
 	if (ioctl(omb_fb_fd, FBIO_BLIT) == -1)
-		omb_log(LOG_WARNING, "cannot blit the framebuffer");
+		omb_log(LOG_WARNING, "%s(): cannot blit the framebuffer, __FUNCTION__");
 #endif
 }
 
@@ -225,10 +225,10 @@ int omb_open_framebuffer()
 	else
 	    omb_fb_fd = open(OMB_FB_DEVICE_FAILOVER, O_RDWR);	    
 	if (omb_fb_fd == -1) {
-		omb_log(LOG_ERROR, "cannot open framebuffer device");
+		omb_log(LOG_ERROR, "%s(): cannot open framebuffer device", __FUNCTION__);
 		return OMB_ERROR;
 	}
-	omb_log(LOG_DEBUG, "the framebuffer device was opened successfully");
+	omb_log(LOG_DEBUG, "%s(): the framebuffer device was opened successfully", __FUNCTION__);
 	
 	if (omb_read_screen_info() == OMB_ERROR)
 		return OMB_ERROR;

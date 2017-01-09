@@ -112,10 +112,10 @@ void omb_utils_remount_media(omb_device_item *item)
 	sprintf(vol, "%s/%s/%s/etc/init.d/volatile-media.sh", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 	
 	if (omb_utils_file_exists(vol)) {
-		omb_log(LOG_DEBUG, "remount /media into %s", media);
+		omb_log(LOG_DEBUG, "%s():remount /media into %s", __FUNCTION__, media);
 		if (!omb_utils_is_mounted(media))
 			if (mount("tmpfs", media, "tmpfs", 0, "size=64k") != 0)
-				omb_log(LOG_ERROR, "cannot mount %s", media);
+				omb_log(LOG_ERROR, "%s(): cannot mount %s", __FUNCTION__, media);
 	}		
 	if ((mtab = setmntent("/etc/mtab", "r")) != NULL) {
 		while ((part = getmntent(mtab)) != NULL) {
@@ -126,20 +126,20 @@ void omb_utils_remount_media(omb_device_item *item)
 					sprintf(tmp, "%s/%s", base, part->mnt_dir);
 					
 					if (omb_utils_umount(part->mnt_dir) == OMB_ERROR)
-						omb_log(LOG_WARNING, "cannot umount %s", part->mnt_dir);
+						omb_log(LOG_WARNING, "%s(): cannot umount %s", __FUNCTION__, part->mnt_dir);
 					
 					if (!omb_utils_dir_exists(tmp))
 						mkdir(tmp, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 					if (omb_utils_mount(part->mnt_fsname, tmp) == OMB_ERROR)
-						omb_log(LOG_WARNING, "cannot mount %s", tmp);
+						omb_log(LOG_WARNING, "%s(): cannot mount %s", __FUNCTION__, tmp);
 				}
 		}
 		endmntent(mtab);
 	}
 
 	if (omb_utils_umount("/media") == OMB_ERROR)
-		omb_log(LOG_WARNING, "cannot umount /media");
+		omb_log(LOG_WARNING, "%s(): cannot umount /media", __FUNCTION__);
 }
 
 int omb_utils_find_and_mount()
@@ -153,20 +153,20 @@ int omb_utils_find_and_mount()
 			if (strlen(dir->d_name) == 4 && memcmp(dir->d_name, "sd", 2) == 0) {
 				char device[255];
 				sprintf(device, "%s/%s", OMB_DEVICES_DIR, dir->d_name);
-				omb_log(LOG_DEBUG, "check device %s", device);
+				omb_log(LOG_DEBUG, "%s(): check device %s", __FUNCTION__, device);
 				
 				omb_utils_umount(OMB_MAIN_DIR); // just force umount without check
 				if (omb_utils_mount(device, OMB_MAIN_DIR) == OMB_SUCCESS) {
 					char datadir[255];
 					sprintf(datadir, "%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR);
 					if (omb_utils_dir_exists(datadir)) {
-						omb_log(LOG_DEBUG, "found data on device %s", device);
+						omb_log(LOG_DEBUG, "%s(): found data on device %s", __FUNCTION__, device);
 						closedir(fd);
 						return OMB_SUCCESS;
 					}
 					
 					if (omb_utils_umount(OMB_MAIN_DIR) == OMB_ERROR)
-						omb_log(LOG_ERROR, "cannot umount %s", OMB_MAIN_DIR);
+						omb_log(LOG_ERROR, "%s(): cannot umount %s", __FUNCTION__, OMB_MAIN_DIR);
 				}
 			}
 		}	
@@ -184,7 +184,7 @@ omb_device_item *omb_utils_get_images()
 	omb_device_item *first = NULL;
 	omb_device_item *last = NULL;
 	
-	omb_log(LOG_DEBUG, "discover images");
+	omb_log(LOG_DEBUG, "%s(): discover images", __FUNCTION__);
 	
 	omb_device_item *item = omb_branding_read_info("", "flash");
 	if (item != NULL) {
@@ -204,7 +204,7 @@ omb_device_item *omb_utils_get_images()
 				sprintf(base_dir, "%s/%s", datadir, dir->d_name);
 
 				if (!omb_branding_is_compatible(base_dir)) {
-					omb_log(LOG_DEBUG ,"omb_utils_get_images: skipping image %s",base_dir);
+					omb_log(LOG_DEBUG ,"%s(): skipping image %s", __FUNCTION__, base_dir);
 					continue;
 				}
 
@@ -305,7 +305,7 @@ int omb_utils_check_lock_menu()
 	char tmp[255];
 	sprintf(tmp, "%s/%s/.bootmenu.lock", OMB_MAIN_DIR, OMB_DATA_DIR);
 	if (omb_utils_file_exists(tmp)) {
-		omb_log(LOG_DEBUG ,"omb_utils_check_lock_menu: bootmenu disabled!");
+		omb_log(LOG_DEBUG ,"%s(): bootmenu disabled!", __FUNCTION__);
 		return 1;
 	}
 	
@@ -347,7 +347,7 @@ int omb_utils_read_int(const char *key)
 		ret = atoi(tmp);
 		free(tmp);
 	}
-	omb_log(LOG_DEBUG, "omb_utils_read_int: selected %d", ret);
+	omb_log(LOG_DEBUG, "%s(): selected %d", __FUNCTION__, ret);
 	return ret;
 }
 
@@ -370,25 +370,25 @@ void omb_utils_build_vu_wrapper(omb_device_item *item)
 
 void omb_utils_init_system()
 {
-	omb_log(LOG_DEBUG, "mount /proc");
+	omb_log(LOG_DEBUG, "%s(): mount /proc", __FUNCTION__);
 	if (!omb_utils_is_mounted("/proc"))
 		if (mount("proc", "/proc", "proc", 0, NULL) != 0)
-			omb_log(LOG_ERROR, "cannot mount /proc");
+			omb_log(LOG_ERROR, "%s(): cannot mount /proc", __FUNCTION__);
 	
-	omb_log(LOG_DEBUG, "mount /sys");
+	omb_log(LOG_DEBUG, "%s(): mount /sys", __FUNCTION__);
 	if (!omb_utils_is_mounted("/sys"))
 		if (mount("sysfs", "/sys", "sysfs", 0, NULL) != 0)
-			omb_log(LOG_ERROR, "cannot mount /sys");
+			omb_log(LOG_ERROR, "%s(): cannot mount /sys", __FUNCTION__);
 	
-	omb_log(LOG_DEBUG, "mount /media");
+	omb_log(LOG_DEBUG, "%s(): mount /media", __FUNCTION__);
 	if (!omb_utils_is_mounted("/media"))
 		if (mount("tmpfs", "/media", "tmpfs", 0, "size=64k") != 0)
-			omb_log(LOG_ERROR, "cannot mount /media");
+			omb_log(LOG_ERROR, "%s(): cannot mount /media", __FUNCTION__);
 
-	omb_log(LOG_DEBUG, "run volatile media");
+	omb_log(LOG_DEBUG, "%s(): run volatile media", __FUNCTION__);
 	system(OMB_VOLATILE_MEDIA_BIN);
 
-	omb_log(LOG_DEBUG, "run mdev");
+	omb_log(LOG_DEBUG, "%s(): run mdev", __FUNCTION__);
 	system(OMB_MDEV_BIN);
 	
 	// we really need this sleep?? :( - (wait for mdev to finalize)
@@ -406,7 +406,7 @@ void omb_utils_init_system()
 
 void omb_utils_prepare_destination(omb_device_item *item)
 {	
-	omb_log(LOG_DEBUG, "prepare destination");
+	omb_log(LOG_DEBUG, "%s(): prepare destination", __FUNCTION__);
 
 	if (item != NULL && strcmp(item->identifier, "flash") != 0)
 	{
@@ -425,29 +425,29 @@ void omb_utils_prepare_destination(omb_device_item *item)
 		
 		if (!omb_utils_is_mounted(dev))
 			if (mount("/dev", dev, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind /dev to %s",dev);
+				omb_log(LOG_ERROR, "%s(): cannot bind /dev to %s", __FUNCTION__, dev);
 		
 		if (!omb_utils_is_mounted(proc))
 			if (mount("/proc", proc, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind /proc to %s",proc);
+				omb_log(LOG_ERROR, "%s(): cannot bind /proc to %s", __FUNCTION__, proc);
 		
 		if (!omb_utils_is_mounted(sys))
 			if (mount("/sys", sys, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind /sys to %s",sys);
+				omb_log(LOG_ERROR, "%s(): cannot bind /sys to %s", __FUNCTION__, sys);
 
 		if (!omb_utils_dir_exists(omb))
 			mkdir(omb, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 		if (!omb_utils_is_mounted(omb))
 			if (mount(OMB_MAIN_DIR, omb, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind %s to %s", OMB_MAIN_DIR, omb);
+				omb_log(LOG_ERROR, "%s(): cannot bind %s to %s", __FUNCTION__, OMB_MAIN_DIR, omb);
 				
 		if (!omb_utils_dir_exists(omb_plugin))
 			mkdir(omb_plugin, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
 		if (!omb_utils_is_mounted(omb_plugin))
 			if (mount(OMB_PLUGIN_DIR, omb_plugin, NULL, MS_BIND, NULL) != 0)
-				omb_log(LOG_ERROR, "cannot bind %s to %s", OMB_PLUGIN_DIR, omb_plugin);
+				omb_log(LOG_ERROR, "%s(): cannot bind %s to %s", __FUNCTION__, OMB_PLUGIN_DIR, omb_plugin);
 
 		if (!omb_utils_dir_exists(flash))
 			mkdir(flash, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
@@ -463,7 +463,7 @@ void omb_utils_load_modules(omb_device_item *item)
 {
 	int i;
 	
-	omb_log(LOG_DEBUG, "omb_utils_load_modules(): load modules");
+	omb_log(LOG_DEBUG, "%s(): load modules", __FUNCTION__);
 
 	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
 		system(OMB_MODUTILS_BIN);
@@ -484,7 +484,7 @@ void omb_utils_load_modules(omb_device_item *item)
 	}
 
 #ifdef __sh__
-	omb_log(LOG_DEBUG, "load lirc");
+	omb_log(LOG_DEBUG, "%s(): load lirc", __FUNCTION__);
 	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
 		system("/etc/init.d/populate-volatile.sh start");
 		system("/etc/init.d/lircd start");
@@ -509,7 +509,7 @@ void omb_utils_load_modules(omb_device_item *item)
  */
 void omb_utils_load_modules_vugl(omb_device_item *item)
 {	
-	omb_log(LOG_DEBUG, "omb_utils_load_modules_vugl(): load vuplus-platform-util");
+	omb_log(LOG_DEBUG, "%s(): load vuplus-platform-util", __FUNCTION__);
 	
 	int i;
 
@@ -577,7 +577,7 @@ void omb_utils_backup_kernel(omb_device_item *item)
 	if (!item)
 		return;
 	
-	omb_log(LOG_DEBUG, "backup kernel for image '%s'", item->identifier);
+	omb_log(LOG_DEBUG, "%s(): backup kernel for image '%s'", __FUNCTION__, item->identifier);
 #ifdef OMB_DREAMBOX
 	sprintf(cmd, "%s %s -nof %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 #elif defined(OMB_MMCBLK)
@@ -601,12 +601,12 @@ void omb_utils_restore_kernel(omb_device_item *item)
 	sprintf(filename, "%s/%s/.kernels/%s.bin", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 	if (omb_utils_file_exists(filename)) {
 #ifndef OMB_MMCBLK
-		omb_log(LOG_DEBUG, "erasing MTD");
+		omb_log(LOG_DEBUG, "%s(): erasing MTD", __FUNCTION__);
 		sprintf(cmd, "%s %s 0 0", OMB_FLASHERASE_BIN, OMB_KERNEL_MTD);
 		system(cmd);
 #endif
 	
-		omb_log(LOG_DEBUG, "restore kernel for image '%s'", item->identifier);
+		omb_log(LOG_DEBUG, "%s(): restore kernel for image '%s'", __FUNCTION__, item->identifier);
 #ifdef OMB_DREAMBOX
 		sprintf(cmd, "%s -mno %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 #elif defined(OMB_MMCBLK)
