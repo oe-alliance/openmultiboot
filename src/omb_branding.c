@@ -116,7 +116,7 @@ int omb_branding_is_compatible(const char* base_dir, const char* flash_box_type,
 
 	if (strlen(box_type) == 0) {
 		sprintf(fallback_arch_path, "%s/etc/opkg/arch.conf", base_dir);
-		omb_log(LOG_DEBUG, "omb_branding_get_box_type: fallback to %s parsing", __FUNCTION__, fallback_arch_path);
+		omb_log(LOG_DEBUG, "%-33s: fallback to %s parsing", __FUNCTION__, fallback_arch_path);
 		FILE *farch = fopen(fallback_arch_path, "r");
 		if (farch) {
 			char buffer[255];
