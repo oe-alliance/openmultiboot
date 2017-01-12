@@ -86,6 +86,19 @@ char * omb_branding_get_box_type(const char* base_dir) {
 		sprintf(p_box_type, "vu%s",buffer);
 		omb_log(LOG_DEBUG, "%-33s: patched box_type:%s should be ok", __FUNCTION__, p_box_type);
 	}
+
+	if (strlen(p_box_type) == 0) { // openpli doesn't have boxbranding, we need this for vuplus vfd/tft
+		FILE *fvu = fopen("/proc/stb/info/vumodel", "r");
+		if (fvu) {
+			char tmp[63];
+			if (fscanf(fvu, "%s", &tmp) == 1) {
+				p_box_type = realloc(p_box_type,strlen(tmp) + 1);
+				strcpy(p_box_type, tmp);
+			}
+			fclose(fvu);
+		}
+	}
+
 	return p_box_type;
 }
 
