@@ -39,6 +39,7 @@
 static int omb_timer_enabled;
 static int omb_current_timer;
 static int omb_timer;
+char *brand_oem;
 char omb_vumodel[63];
 
 void omb_draw_header()
@@ -209,6 +210,7 @@ int omb_show_menu()
 int main(int argc, char *argv[]) 
 {
 	int is_rebooting = 0;
+	int small_lcd = 0;
 
 	if (argc > 1 && getppid() > 1) {
 		omb_utils_sysvinit(NULL, argv[1]);
@@ -222,6 +224,7 @@ int main(int argc, char *argv[])
 		char *selected = NULL;
 		char *nextboot = NULL;
 		if (omb_utils_find_and_mount() == OMB_SUCCESS) {
+			brand_oem = omb_branding_get_brand_oem("/"); // in omb_menu "/" should be always the flash
 			items = omb_utils_get_images();
 			omb_menu_set(items);
 			selected = omb_utils_read(OMB_SETTINGS_SELECTED);
