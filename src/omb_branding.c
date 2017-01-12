@@ -29,6 +29,74 @@
 #include "omb_branding.h"
 #include "omb_utils.h"
 
+char * omb_branding_get_brand_oem(const char* base_dir) {
+	char brand_oem_cmd[512];
+	char *p_brand_oem;
+	FILE *fd;
+
+	omb_log(LOG_DEBUG, "%-33s: processing %s", __FUNCTION__, base_dir);
+	sprintf(brand_oem_cmd, "%s %s /usr/lib/enigma2/python brand_oem", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
+	fd = popen(brand_oem_cmd, "r");
+	if (fd) {
+		char buffer[255];
+		char *line = fgets(buffer, sizeof(buffer), fd);
+		if (line) {
+			strtok(line, "\n");
+			p_brand_oem = malloc(strlen(line) + 1);
+			strcpy(p_brand_oem, line);
+		}
+		pclose(fd);
+		omb_log(LOG_DEBUG, "%-33s: brand_oem = %s", __FUNCTION__, p_brand_oem);
+	}
+	return p_brand_oem;
+}
+
+char * omb_branding_get_box_type(const char* base_dir) {
+	char box_type_cmd[512];
+	char *p_box_type;
+	p_box_type = malloc(1);
+	p_box_type[0] = 0;
+
+	FILE *fd;
+
+	omb_log(LOG_DEBUG, "%-33s: processing %s (%s)", __FUNCTION__, base_dir, brand_oem);
+	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
+
+	fd = popen(box_type_cmd, "r");
+	if (fd) {
+		char buffer[255];
+		char *line = fgets(buffer, sizeof(buffer), fd);
+		if (line) {
+			strtok(line, "\n");
+		}
+		pclose(fd);
+		omb_log(LOG_DEBUG, "%-33s: box_type = %s", __FUNCTION__, p_box_type);
+	}
+
+	//fix for buggy oe-branding support of some image
+	if (strlen(p_box_type) != 0 && !strcmp(brand_oem,"vuplus") && strncmp(p_box_type,"vu",2)) {
+		omb_log(LOG_DEBUG, "%-33s: buggy image... box_type:%s is invalid", __FUNCTION__, p_box_type);
+		char buffer[255];
+		strcpy(buffer,p_box_type);
+		p_box_type = realloc(p_box_type,strlen(p_box_type) + 3);
+		sprintf(p_box_type, "vu%s",buffer);
+		omb_log(LOG_DEBUG, "%-33s: patched box_type:%s should be ok", __FUNCTION__, p_box_type);
+	}
+
+	if (strlen(p_box_type) == 0) { // openpli doesn't have boxbranding, we need this for vuplus vfd/tft
+		FILE *fvu = fopen("/proc/stb/info/vumodel", "r");
+		if (fvu) {
+			char tmp[63];
+			if (fscanf(fvu, "%s", &tmp) == 1) {
+				p_box_type = realloc(p_box_type,strlen(tmp) + 1);
+				strcpy(p_box_type, tmp);
+			}
+			fclose(fvu);
+		}
+	}
+
+	return p_box_type;
+}
 
 int omb_branding_is_compatible(const char* base_dir)
 {
