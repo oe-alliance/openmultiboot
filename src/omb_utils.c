@@ -202,12 +202,14 @@ omb_device_item *omb_utils_get_images()
 			if (strlen(dir->d_name) > 0 && dir->d_name[0] != '.') {
 				char base_dir[255];
 				sprintf(base_dir, "%s/%s", datadir, dir->d_name);
-
-				if (!omb_branding_is_compatible(base_dir)) {
-					omb_log(LOG_DEBUG ,"%-33s: skipping image %s", __FUNCTION__, base_dir);
-					continue;
-				}
-
+#ifndef OMB_DISABLED_BRANDING
+					omb_log(LOG_DEBUG, "%-33s: omb branding is compatible disabled", __FUNCTION__);
+#else
+					if (!omb_branding_is_compatible(base_dir)) {
+						omb_log(LOG_DEBUG ,"%-33s: skipping image %s", __FUNCTION__, base_dir);
+						continue;
+					}
+#endif
 				omb_device_item *item = omb_branding_read_info(base_dir, dir->d_name);
 				if (item != NULL) {
 					if (first == NULL)
