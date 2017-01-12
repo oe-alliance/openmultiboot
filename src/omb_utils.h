@@ -25,9 +25,11 @@
 
 typedef struct omb_device_item
 {
+	int is_inflash;
 	char *label;
 	char *directory;
 	char *identifier;
+	char *box_type;
 	struct omb_device_item *next;
 } omb_device_item;
 
