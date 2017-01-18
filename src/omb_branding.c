@@ -29,6 +29,8 @@
 #include "omb_branding.h"
 #include "omb_utils.h"
 
+extern char *brand_oem;
+
 char * omb_branding_get_brand_oem(const char* base_dir) {
 	char brand_oem_cmd[512];
 	char *p_brand_oem;
@@ -52,6 +54,7 @@ char * omb_branding_get_brand_oem(const char* base_dir) {
 }
 
 char * omb_branding_get_box_type(const char* base_dir) {
+
 	char box_type_cmd[512];
 	char *p_box_type;
 	p_box_type = malloc(1);
