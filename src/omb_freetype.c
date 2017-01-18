@@ -54,9 +54,8 @@ int omb_init_freetype(int small_lcd)
 		return OMB_ERROR;
 	}
 
-	//omb_log(LOG_DEBUG, "omb_init_freetype boxmodel: %s",omb_vumodel);
-	if (strcmp(omb_vumodel,"duo2")) {
-		//omb_log(LOG_DEBUG, "omb_init_freetype omb_segoe_ui_font");
+	if (small_lcd == 0) {
+		omb_log(LOG_DEBUG, "omb_init_freetype(): standard lcd");
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_segoe_ui_font, omb_segoe_ui_font_length, 0, &omb_freetype_face) != 0) {
 			omb_log(LOG_ERROR, "%-33s: cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
@@ -66,7 +65,7 @@ int omb_init_freetype(int small_lcd)
 			return OMB_ERROR;
 		}
 	} else {
-		//omb_log(LOG_DEBUG, "omb_init_freetype omb_lcddot_font");
+		omb_log(LOG_DEBUG, "omb_init_freetype(): small_lcd, use omb_lcddot_font");
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_segoe_ui_font, omb_segoe_ui_font_length, 0, &omb_freetype_face) != 0) {
 			omb_log(LOG_ERROR, "%-33s: cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
@@ -182,7 +181,7 @@ int omb_render_text(const char* text, int x, int y, int width, int color, int fo
 	return OMB_SUCCESS;
 }
 
-int omb_render_lcd_text(const char* text, int x, int y, int width, int color, int font_size, int align)
+int omb_render_lcd_text(const char* text, int x, int y, int width, int color, int font_size, int align, int small_lcd)
 {
 	int i, pen_x, pen_y;
 	int num_chars = strlen(text);
@@ -195,15 +194,14 @@ int omb_render_lcd_text(const char* text, int x, int y, int width, int color, in
 	pen_x = x;
 	pen_y = y;
 
-//	omb_log(LOG_DEBUG, "omb_render_lcd_text boxmodel: %s",omb_vumodel);
-	if (strcmp(omb_vumodel,"duo2")) {
-//		omb_log(LOG_DEBUG, "FT_Set_Char_Size");
+	if (small_lcd == 1) {
+		omb_log(LOG_DEBUG, "omb_render_lcd_text(): small_lcd selected");
 		if (FT_Set_Char_Size(omb_freetype_lcd_face, font_size * 64, 0, 100, 0)) {
 			omb_log(LOG_ERROR, "cannot set font size");
 			return OMB_ERROR;
 		}
 	} else {
-//		omb_log(LOG_DEBUG, "FT_Set_Pixel_Size");
+		omb_log(LOG_DEBUG, "omb_render_lcd_text(): standard_size lcd");
 		if (FT_Set_Pixel_Sizes(omb_freetype_lcd_face, 16, 16)){
 			omb_log(LOG_ERROR, "cannot set font size");
 			return OMB_ERROR;
@@ -220,8 +218,6 @@ int omb_render_lcd_text(const char* text, int x, int y, int width, int color, in
 		pos[i].y = pen_y - omb_freetype_lcd_slot->bitmap_top;
 		pen_x += omb_freetype_lcd_slot->advance.x >> 6;
 
-		//if (!strcmp(omb_vumodel,"duo2"))
-		//	pen_x += 1;
 	}
 	
 	int text_width = (pos[num_chars - 1].x + bitmaps[num_chars - 1].width) - pos[0].x;
