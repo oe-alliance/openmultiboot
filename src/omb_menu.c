@@ -160,7 +160,8 @@ void omb_menu_render(int small_lcd)
 				omb_lcd_get_width(),
 				OMB_LCD_SELECTION_COLOR,
 				selection_size,
-				OMB_TEXT_ALIGN_CENTER);
+				OMB_TEXT_ALIGN_CENTER,
+				small_lcd);
 #endif
 			
 			color = OMB_MENU_ITEM_SELECTED_COLOR;
