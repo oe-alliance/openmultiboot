@@ -25,7 +25,7 @@
 
 #include "omb_utils.h"	
 
-int omb_branding_is_compatible(const char* base_dir);
+int omb_branding_is_compatible(const char* base_dir, const char* flash_box_type, const char* box_type);
 
 omb_device_item *omb_branding_read_info(const char* base_dir, const char *identifier);
 

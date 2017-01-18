@@ -98,66 +98,16 @@ char * omb_branding_get_box_type(const char* base_dir) {
 	return p_box_type;
 }
 
-int omb_branding_is_compatible(const char* base_dir)
+int omb_branding_is_compatible(const char* base_dir, const char* flash_box_type, const char* box_type)
 {
+	// if box_type is empty, probably the image isn't a boxbranded image... so apply a fix
+	omb_log(LOG_DEBUG, "%-33s: comparing %s with %s", __FUNCTION__, flash_box_type, box_type);
+
 	char fallback_arch_path[512];
-	char box_type_inflash_cmd[512];
-	char box_type_cmd[512];
-	char brand_oem_cmd[512];
-	char box_type_inflash[255] = "\0";
-	char box_type[255] = "\0";
-	char brand_oem[255] = "\0";
-	FILE *fd;
 
-	// we assume that flash image have boxbranding support
-
-	omb_log(LOG_DEBUG, "%-33s: processing %s", __FUNCTION__, base_dir);
-	sprintf(brand_oem_cmd, "%s %s /usr/lib/enigma2/python brand_oem", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
-	fd = popen(brand_oem_cmd, "r");
-	if (fd) {
-		char buffer[255];
-		char *line = fgets(buffer, sizeof(buffer), fd);
-		if (line) {
-			strtok(line, "\n");
-			strncpy(brand_oem, line, sizeof(brand_oem));
-		}
-		pclose(fd);
-		omb_log(LOG_DEBUG, "%-33s: brand_oem = %s", __FUNCTION__, brand_oem);
-	}
-
-	sprintf(box_type_inflash_cmd, "%s %s /usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
-	fd = popen(box_type_inflash_cmd, "r");
-	if (fd) {
-		char buffer[255];
-		char *line = fgets(buffer, sizeof(buffer), fd);
-		if (line) {
-			strtok(line, "\n");
-			strncpy(box_type_inflash, line, sizeof(box_type_inflash));
-		}
-		pclose(fd);
-		omb_log(LOG_DEBUG, "%-33s: box_type_inflash = %s", __FUNCTION__, box_type_inflash);
-	}
-	
-	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
-	fd = popen(box_type_cmd, "r");
-	if (fd) {
-		char buffer[255];
-		char *line = fgets(buffer, sizeof(buffer), fd);
-		if (line) {
-			strtok(line, "\n");
-			strncpy(box_type, line, sizeof(box_type));
-		}
-		pclose(fd);
-		omb_log(LOG_DEBUG, "%-33s: box_type = %s",__FUNCTION__,  box_type);
-	}
-
-	//fix for buggy oe-branding support of some image
-	if (strlen(box_type) != 0 && !strcmp(brand_oem,"vuplus") && strncmp(box_type,"vu",2)) {
-		omb_log(LOG_DEBUG, "%-33s: buggy image... box_type:%s is invalid", __FUNCTION__, box_type);
-		char buffer[255];
-		strcpy(buffer,box_type);
-		sprintf(box_type, "vu%s",buffer);
-		omb_log(LOG_DEBUG, "%-33s: patched box_type:%s should be ok", __FUNCTION__, box_type);
+	if (!strcmp(box_type, flash_box_type)) {
+		omb_log(LOG_DEBUG, "%-33s: flash_box_type:%s == box_type:%s", __FUNCTION__, flash_box_type, box_type);
+		return 1;
 	}
 
 	if (strlen(box_type) == 0) {
@@ -177,21 +127,18 @@ int omb_branding_is_compatible(const char* base_dir)
 					token = strtok(NULL, " \t");
 					i++;
 				}
-				if (!strcmp(array[1],box_type_inflash)) {
-					strcpy(box_type,array[1]);
-					break;
+				if (!strcmp(array[1],flash_box_type)) {
+					omb_log(LOG_DEBUG, "%-33s: flash_box_type:%s == box_type:%s (workaround)", __FUNCTION__, flash_box_type, array[1]);
+					//strcpy(box_type,array[1]);
+					//break;
+					return 1;
 				}
 			}
 			fclose(farch);
 		}
-		
-	}
-	if (!strcmp(box_type, box_type_inflash)) {
-		omb_log(LOG_DEBUG, "%-33s: box_type_inflash:%s == box_type:%s", __FUNCTION__, box_type_inflash, box_type);
-		return 1;
 	}
 
-	omb_log(LOG_DEBUG, "%-33s: box_type_inflash:%s != box_type:%s", __FUNCTION__, box_type_inflash, box_type);
+	omb_log(LOG_DEBUG, "%-33s: flash_box_type:%s != box_type:%s", __FUNCTION__, flash_box_type, box_type);
 	return 0;
 }
 

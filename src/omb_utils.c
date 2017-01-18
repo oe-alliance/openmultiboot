@@ -203,7 +203,8 @@ omb_device_item *omb_utils_get_images()
 				char base_dir[255];
 				sprintf(base_dir, "%s/%s", datadir, dir->d_name);
 
-				if (!omb_branding_is_compatible(base_dir)) {
+				omb_device_item *item = omb_branding_read_info(base_dir, dir->d_name);
+				if (!omb_branding_is_compatible(base_dir, first->box_type, item->box_type)) {
 					omb_log(LOG_DEBUG ,"%-33s: skipping image %s", __FUNCTION__, base_dir);
 					continue;
 				}
