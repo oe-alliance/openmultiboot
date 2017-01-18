@@ -208,7 +208,7 @@ omb_device_item *omb_utils_get_images()
 
 	sprintf(datadir, "%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR);
 	fd = opendir(datadir);
-	if (fd) {
+	if (fd) {		
 		while ((dir = readdir(fd)) != NULL) {
 			if (strlen(dir->d_name) > 0 && dir->d_name[0] != '.') {
 				char base_dir[255];
@@ -244,6 +244,7 @@ void omb_utils_free_items(omb_device_item *items)
 		free(tmp2->label);
 		free(tmp2->directory);
 		free(tmp2->identifier);
+		free(tmp2->box_type);
 		free(tmp2);
 	}
 }
