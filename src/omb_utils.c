@@ -74,7 +74,16 @@ int omb_utils_mount(const char* device, const char* mountpoint)
 		if (mount(device, mountpoint, omb_utils_fs_types[i], 0, NULL) == 0)
 			return OMB_SUCCESS;
 	
+#if defined(__i386__) || defined(__x86_64__)
+	/*
+	 * - create multiple /omb/open-multiboot/<image>/etc/issue 
+	 * - patch open-multiboot-branding-helper.py
+	 * - add -D OMB_BRANDING_HELPER_BIN='"/tmp/sbin/open-multiboot-branding-helper.py"'
+	 */
+	return OMB_SUCCESS; 
+#else
 	return OMB_ERROR;
+#endif
 }
 
 int omb_utils_is_mounted(const char *mountpoint)
