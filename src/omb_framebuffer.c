@@ -88,7 +88,7 @@ int omb_set_screen_info(int width, int height, int bpp)
 	omb_var_screen_info.height = 0;
 	omb_var_screen_info.width = 0;
 
-#ifndef __sh__
+#if ! (defined(__sh__) || defined(__i386__) || defined(__x86_64__))
 	if (ioctl(omb_fb_fd, FBIOPUT_VSCREENINFO, &omb_var_screen_info) < 0) {
 		omb_log(LOG_ERROR, "%-33s: cannot set variable information", __FUNCTION__);
 		return OMB_ERROR;
@@ -165,7 +165,7 @@ int omb_set_manual_blit()
 {
 	omb_log(LOG_DEBUG, "%-33s: set manual blit", __FUNCTION__);
 	
-#ifndef __sh__
+#if ! (defined(__sh__) || defined(__i386__) || defined(__x86_64__))
 	unsigned char tmp = 1;
 	if (ioctl(omb_fb_fd, FBIO_SET_MANUAL_BLIT, &tmp)) {
 		omb_log(LOG_ERROR, "failed to set manual blit");

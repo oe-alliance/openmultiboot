@@ -53,7 +53,9 @@ int omb_input_open()
 	if (omb_input_num_fds == 0)
 	{
 		omb_log(LOG_ERROR, "%-33s: cannot open input device", __FUNCTION__);
+#if ! (defined(__i386__) || defined(__x86_64__))
 		return OMB_ERROR;
+#endif
 	}
 
 	omb_log(LOG_DEBUG, "%-33s: input device opened", __FUNCTION__);
