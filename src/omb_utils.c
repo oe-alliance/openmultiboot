@@ -42,8 +42,10 @@ int omb_utils_dir_exists(const char* folder)
 	DIR *fd = opendir(folder);
 	if (fd) {
 		closedir(fd);
+		omb_log(LOG_DEBUG, "%-33s: %s exists", __FUNCTION__, folder);
 		return 1;
 	}
+	omb_log(LOG_DEBUG, "%-33s: %s doesn't exists", __FUNCTION__, folder);
 	return 0;
 }
 
