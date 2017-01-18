@@ -479,12 +479,14 @@ void omb_utils_load_modules(omb_device_item *item)
 		system(cmd);
 	}
 	
+#if !(defined(__i386__) || defined(__x86_64__))
 	for (i = 0; i < 200; i++) {
 		if (omb_utils_file_exists(OMB_VIDEO_DEVICE))
 			break;
 		
 		usleep(10000);
 	}
+#endif
 
 #ifdef __sh__
 	omb_log(LOG_DEBUG, "%-33s: load lirc", __FUNCTION__);
@@ -565,12 +567,14 @@ void omb_utils_load_modules_vugl(omb_device_item *item)
 		
 	}
 
+#if !(defined(__i386__) || defined(__x86_64__))
 	for (i = 0; i < 500; i++) {
 		if (omb_utils_file_exists(OMB_VIDEO_DEVICE))
 			break;
 		
 		usleep(10000);
 	}
+#endif
 }
 
 void omb_utils_backup_kernel(omb_device_item *item)

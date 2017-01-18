@@ -247,9 +247,11 @@ int main(int argc, char *argv[])
 			if (!lock_menu) {
 				omb_log(LOG_DEBUG, "%-33s: loading modules...", __FUNCTION__);
 				omb_utils_load_modules(item);
+#if !(defined(__i386__) || defined(__x86_64__))
 				if (!omb_utils_file_exists(OMB_VIDEO_DEVICE)) {
 					omb_utils_load_modules_vugl(item);
 				}
+#endif
 				omb_utils_setrctype();
 			}
 			omb_utils_update_background(item);

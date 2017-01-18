@@ -168,7 +168,7 @@ int omb_set_manual_blit()
 #if ! (defined(__sh__) || defined(__i386__) || defined(__x86_64__))
 	unsigned char tmp = 1;
 	if (ioctl(omb_fb_fd, FBIO_SET_MANUAL_BLIT, &tmp)) {
-		omb_log(LOG_ERROR, "failed to set manual blit");
+		omb_log(LOG_ERROR, "%-33s: failed to set manual blit", __FUNCTION__);
 		return OMB_ERROR;
 	}
 #endif
@@ -204,7 +204,7 @@ void omb_blit()
 		omb_log(LOG_WARNING, "%-33s: cannot sync blit", __FUNCTION__);
 #else
 	if (ioctl(omb_fb_fd, FBIO_BLIT) == -1)
-		omb_log(LOG_WARNING, "%-33s: cannot blit the framebuffer, __FUNCTION__");
+		omb_log(LOG_WARNING, "%-33s: cannot blit the framebuffer", __FUNCTION__);
 #endif
 }
 
