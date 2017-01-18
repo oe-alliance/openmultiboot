@@ -220,7 +220,6 @@ omb_device_item *omb_utils_get_images()
 					continue;
 				}
 
-				omb_device_item *item = omb_branding_read_info(base_dir, dir->d_name);
 				if (item != NULL) {
 					if (first == NULL)
 						first = item;
