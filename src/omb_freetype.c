@@ -50,12 +50,12 @@ static FT_GlyphSlot omb_freetype_symbols_slot;
 int omb_init_freetype(int small_lcd)
 {
 	if (FT_Init_FreeType(&omb_freetype_library) != 0) {
-		omb_log(LOG_ERROR, "cannot init freetype");
+		omb_log(LOG_ERROR, "%-33s: cannot init freetype", __FUNCTION__);
 		return OMB_ERROR;
 	}
 
 	if (small_lcd == 0) {
-		omb_log(LOG_DEBUG, "omb_init_freetype(): standard lcd");
+		omb_log(LOG_DEBUG, "%-33s: standard lcd", __FUNCTION__);
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_segoe_ui_font, omb_segoe_ui_font_length, 0, &omb_freetype_face) != 0) {
 			omb_log(LOG_ERROR, "%-33s: cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
@@ -65,7 +65,7 @@ int omb_init_freetype(int small_lcd)
 			return OMB_ERROR;
 		}
 	} else {
-		omb_log(LOG_DEBUG, "omb_init_freetype(): small_lcd, use omb_lcddot_font");
+		omb_log(LOG_DEBUG, "%-33s: small_lcd, use omb_lcddot_font", __FUNCTION__);
 		if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_segoe_ui_font, omb_segoe_ui_font_length, 0, &omb_freetype_face) != 0) {
 			omb_log(LOG_ERROR, "%-33s: cannot open base font", __FUNCTION__);
 			return OMB_ERROR;
@@ -77,7 +77,7 @@ int omb_init_freetype(int small_lcd)
 	}
 
 	if (FT_New_Memory_Face(omb_freetype_library, (const FT_Byte*)omb_icomoon_font, omb_icomoon_font_length, 0, &omb_freetype_symbols_face) != 0) {
-		omb_log(LOG_ERROR, "cannot open symbols font");
+		omb_log(LOG_ERROR, "%-33s: cannot open symbols font", __FUNCTION__);
 		return OMB_ERROR;
 	}
 	
@@ -99,7 +99,7 @@ void omb_deinit_freetype()
 int omb_render_symbol(int code, int x, int y, int width, int color, int font_size, int align)
 {
 	if (FT_Set_Char_Size(omb_freetype_symbols_face, font_size * 64, 0, 100, 0)) {
-		omb_log(LOG_ERROR, "cannot set font size");
+		omb_log(LOG_ERROR, "%-33s: cannot set font size", __FUNCTION__);
 		return OMB_ERROR;
 	}
 	
@@ -120,7 +120,7 @@ int omb_render_symbol(int code, int x, int y, int width, int color, int font_siz
 int omb_render_lcd_symbol(int code, int x, int y, int width, int color, int font_size, int align)
 {
 	if (FT_Set_Char_Size(omb_freetype_symbols_face, font_size * 64, 0, 100, 0)) {
-		omb_log(LOG_ERROR, "cannot set font size");
+		omb_log(LOG_ERROR, "%-33s: cannot set font size", __FUNCTION__);
 		return OMB_ERROR;
 	}
 	
@@ -152,7 +152,7 @@ int omb_render_text(const char* text, int x, int y, int width, int color, int fo
 	pen_y = y;
 
 	if (FT_Set_Char_Size(omb_freetype_face, font_size * 64, 0, 100, 0)) {
-		omb_log(LOG_ERROR, "cannot set font size");
+		omb_log(LOG_ERROR, "%-33s: cannot set font size", __FUNCTION__);
 		return OMB_ERROR;
 	}
 
@@ -195,15 +195,15 @@ int omb_render_lcd_text(const char* text, int x, int y, int width, int color, in
 	pen_y = y;
 
 	if (small_lcd == 1) {
-		omb_log(LOG_DEBUG, "omb_render_lcd_text(): small_lcd selected");
+		omb_log(LOG_DEBUG, "%-33s: small_lcd selected", __FUNCTION__ );
 		if (FT_Set_Char_Size(omb_freetype_lcd_face, font_size * 64, 0, 100, 0)) {
-			omb_log(LOG_ERROR, "cannot set font size");
+			omb_log(LOG_ERROR, "%-33s: cannot set font size", __FUNCTION__);
 			return OMB_ERROR;
 		}
 	} else {
-		omb_log(LOG_DEBUG, "omb_render_lcd_text(): standard_size lcd");
+		omb_log(LOG_DEBUG, "%-33s: standard_size lcd", __FUNCTION__);
 		if (FT_Set_Pixel_Sizes(omb_freetype_lcd_face, 16, 16)){
-			omb_log(LOG_ERROR, "cannot set font size");
+			omb_log(LOG_ERROR, "%-33s: cannot set font size", __FUNCTION__);
 			return OMB_ERROR;
 		}
 	}
