@@ -137,7 +137,7 @@ int omb_show_menu(int small_lcd, const char *brand_oem)
 	if (omb_open_framebuffer() == OMB_ERROR)
 		return OMB_ERROR;
 	
-	if (omb_init_freetype() == OMB_ERROR)
+	if (omb_init_freetype(small_lcd) == OMB_ERROR)
 		return OMB_ERROR;
 	
 	if (omb_input_open() == OMB_ERROR)
