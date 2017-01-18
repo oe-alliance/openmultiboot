@@ -267,15 +267,11 @@ int main(int argc, char *argv[])
 			
 			if (!lock_menu) {
 				omb_log(LOG_DEBUG, "%-33s: menu enabled", __FUNCTION__);
-				FILE *fvu = fopen("/proc/stb/info/vumodel", "r");
-				if (fvu) {
-					char tmp[63];
-					if (fscanf(fvu, "%s", &tmp) == 1) {
-						strcpy(omb_vumodel, tmp);
-					}
-					fclose(fvu);
-				}
-				omb_log(LOG_DEBUG, "%-33s: boxmodel: %s", __FUNCTION__, omb_vumodel);
+				omb_log(LOG_DEBUG, "%-33s: item->box_type: %s", __FUNCTION__, item->box_type);
+
+				if (!strcmp(item->box_type,"vuduo") || !strcmp(item->box_type,"bm750"))
+					small_lcd = 1;
+
 				omb_show_menu(small_lcd, brand_oem);
 			} else {
 				omb_log(LOG_DEBUG, "%-33s: menu disabled", __FUNCTION__);
