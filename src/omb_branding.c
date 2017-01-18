@@ -61,13 +61,14 @@ char * omb_branding_get_box_type(const char* base_dir) {
 
 	omb_log(LOG_DEBUG, "%-33s: processing %s (%s)", __FUNCTION__, base_dir, brand_oem);
 	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
-
 	fd = popen(box_type_cmd, "r");
 	if (fd) {
 		char buffer[255];
 		char *line = fgets(buffer, sizeof(buffer), fd);
 		if (line) {
 			strtok(line, "\n");
+			p_box_type = realloc(p_box_type,strlen(line) + 1);
+			strcpy(p_box_type, line);
 		}
 		pclose(fd);
 		omb_log(LOG_DEBUG, "%-33s: box_type = %s", __FUNCTION__, p_box_type);
@@ -160,6 +161,8 @@ omb_device_item *omb_branding_read_info(const char* base_dir, const char *identi
 	item->next = NULL;
 	strcpy(item->directory, base_dir);
 	strcpy(item->identifier, identifier);
+
+	item->box_type = omb_branding_get_box_type(base_dir); // we use the malloc of the function
 	
 	if (!settings_value) {
 		version[0] = name[0] = '\0';
