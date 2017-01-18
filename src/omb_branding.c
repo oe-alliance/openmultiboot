@@ -192,17 +192,23 @@ omb_device_item *omb_branding_read_info(const char* base_dir, const char *identi
 			strcpy(name, identifier);
 		
 		item->label = malloc(strlen(name) + strlen(version) + 10);
-		if (strcmp(identifier, "flash") == 0)
+		if (strcmp(identifier, "flash") == 0) {
 			sprintf(item->label, "%s %s (flash)", name, version);
-		else
+			item->is_inflash = 1;
+		} else{
 			sprintf(item->label, "%s %s", name, version);
+			item->is_inflash = 0;
+		}
 	}
 	else {
 		item->label = malloc(strlen(settings_value) + 9);
-		if (strcmp(identifier, "flash") == 0)
+		if (strcmp(identifier, "flash") == 0) {
 			sprintf(item->label, "%s (flash)", settings_value);
-		else
+			item->is_inflash = 1;
+		} else {
 			sprintf(item->label, "%s", settings_value);
+			item->is_inflash = 0;
+		}
 		free(settings_value);
 	}
 		
