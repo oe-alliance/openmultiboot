@@ -29,6 +29,6 @@ omb_device_item *omb_menu_get_selected();
 void omb_menu_next();
 void omb_menu_prev();
 void omb_menu_set_selected(const char *identifier);
-void omb_menu_render();
+void omb_menu_render(int small_lcd);
 
 #endif // _OMB_MENU_H_

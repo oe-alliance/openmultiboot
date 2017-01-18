@@ -47,7 +47,7 @@ static FT_GlyphSlot omb_freetype_slot;
 static FT_GlyphSlot omb_freetype_lcd_slot;
 static FT_GlyphSlot omb_freetype_symbols_slot;
 
-int omb_init_freetype()
+int omb_init_freetype(int small_lcd)
 {
 	if (FT_Init_FreeType(&omb_freetype_library) != 0) {
 		omb_log(LOG_ERROR, "cannot init freetype");

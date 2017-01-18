@@ -120,7 +120,7 @@ void omb_menu_prev()
 		omb_menu_offset = position;
 }
 
-void omb_menu_render()
+void omb_menu_render(int small_lcd)
 {
 	int i;
 	int count = omb_menu_count();

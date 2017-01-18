@@ -115,7 +115,7 @@ void omb_draw_timer()
 	}
 }
 
-void omb_refresh_gui()
+void omb_refresh_gui(int small_lcd, const char *brand_oem)
 {
 	omb_clear_screen();
 	omb_lcd_clear();
@@ -123,20 +123,20 @@ void omb_refresh_gui()
 	omb_draw_lcd();
 	omb_draw_header();
 	omb_draw_timer();
-	omb_menu_render();
+	omb_menu_render(small_lcd);
 	
 	omb_blit();
 	omb_lcd_update();
 }
 
-int omb_show_menu()
+int omb_show_menu(int small_lcd, const char *brand_oem)
 {
 	struct timeval start, end;
 	
 	if (omb_open_framebuffer() == OMB_ERROR)
 		return OMB_ERROR;
 	
-	if (omb_init_freetype() == OMB_ERROR)
+	if (omb_init_freetype(small_lcd) == OMB_ERROR)
 		return OMB_ERROR;
 	
 	if (omb_input_open() == OMB_ERROR)
@@ -149,7 +149,7 @@ int omb_show_menu()
 	omb_current_timer = omb_timer;
 	gettimeofday(&start, NULL);
 	
-	omb_refresh_gui();
+	omb_refresh_gui(small_lcd, brand_oem);
 	
 	for(;;) {
 		usleep(20000);
@@ -186,7 +186,7 @@ int omb_show_menu()
 		}
 		
 		if (need_refresh_gui)
-			omb_refresh_gui();
+			omb_refresh_gui(small_lcd, brand_oem);
 		
 		
 		if (omb_current_timer == 0)
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 					fclose(fvu);
 				}
 				omb_log(LOG_DEBUG, "%-33s: boxmodel: %s", __FUNCTION__, omb_vumodel);
-				omb_show_menu();
+				omb_show_menu(small_lcd, brand_oem);
 			} else {
 				omb_log(LOG_DEBUG, "%-33s: menu disabled", __FUNCTION__);
 			}
