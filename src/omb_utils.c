@@ -565,20 +565,30 @@ void omb_utils_load_modules_vugl(omb_device_item *item)
 void omb_utils_backup_kernel(omb_device_item *item)
 {
 	char cmd[512];
+	char * dumpfile;
 
 	if (!item)
 		return;
-	
-	omb_log(LOG_DEBUG, "%-33s: backup kernel for image '%s'", __FUNCTION__, item->identifier);
+
+	if (item->is_inflash == 1) {
+		dumpfile = malloc(strlen(item->identifier) + 1 + strlen(item->box_type) + 1);
+		sprintf(dumpfile, "%s-%s", item->identifier, item->box_type);
+	} else {
+		dumpfile = malloc(strlen(item->identifier) + 1);
+		sprintf(dumpfile, "%s-%s", item->identifier);
+	}
+
+	omb_log(LOG_DEBUG, "%-33s: backup kernel for image '%s'", __FUNCTION__, dumpfile);
 #ifdef OMB_DREAMBOX
-	sprintf(cmd, "%s %s -nof %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	sprintf(cmd, "%s %s -nof %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #elif defined(OMB_MMCBLK)
 	if (omb_utils_file_exists(OMB_PROC_STB))
-		sprintf(cmd, "%s if=%s of=%s/%s/.kernels/%s.bin", OMB_DD_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+		sprintf(cmd, "%s if=%s of=%s/%s/.kernels/%s.bin", OMB_DD_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #else
-	sprintf(cmd, "%s %s -f %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
+	sprintf(cmd, "%s %s -f %s/%s/.kernels/%s.bin", OMB_NANDDUMP_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #endif
 	system(cmd);
+	free(dumpfile);
 //	omb_log(LOG_DEBUG, "omb_utils_backup_kernel(): cmd: %s");
 }
 
