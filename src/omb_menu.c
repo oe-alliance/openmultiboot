@@ -148,6 +148,7 @@ void omb_menu_render(int small_lcd)
 		omb_device_item *item = omb_menu_get(i);
 		int color = OMB_MENU_ITEM_COLOR;
 		if (i == omb_menu_selected) {
+			omb_log(LOG_DEBUG, "%-33s: %s", __FUNCTION__, item->label);
 #ifdef OMB_HAVE_TEXTLCD
 			omb_lcd_write_text(item->label);
 #else
