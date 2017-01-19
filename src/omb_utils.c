@@ -599,7 +599,7 @@ void omb_utils_backup_kernel(omb_device_item *item)
 		sprintf(dumpfile, "%s-%s", item->identifier, item->box_type);
 	} else {
 		dumpfile = malloc(strlen(item->identifier) + 1);
-		sprintf(dumpfile, "%s-%s", item->identifier);
+		sprintf(dumpfile, "%s", item->identifier);
 	}
 
 	omb_log(LOG_DEBUG, "%-33s: backup kernel for image '%s'", __FUNCTION__, dumpfile);
@@ -630,11 +630,11 @@ void omb_utils_restore_kernel(omb_device_item *item)
 		sprintf(dumpfile, "%s-%s", item->identifier, item->box_type);
 	} else {
 		dumpfile = malloc(strlen(item->identifier) + 1);
-		sprintf(dumpfile, "%s-%s", item->identifier);
+		sprintf(dumpfile, "%s", item->identifier);
 	}
 
 	sprintf(filename, "%s/%s/.kernels/%s.bin", OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
-	omb_log(LOG_DEBUG, "%-33s: preparing kernel restore for image '%s'", __FUNCTION__, dumpfile);
+	omb_log(LOG_DEBUG, "%-33s: restoring kernel from file '%s'", __FUNCTION__, filename);
 	if (omb_utils_file_exists(filename)) {
 #ifndef OMB_MMCBLK
 		omb_log(LOG_DEBUG, "%-33s: erasing MTD", __FUNCTION__);
