@@ -195,14 +195,14 @@ int omb_render_lcd_text(const char* text, int x, int y, int width, int color, in
 	pen_y = y;
 
 	if (small_lcd == 1) {
-		omb_log(LOG_DEBUG, "%-33s: small_lcd selected", __FUNCTION__ );
-		if (FT_Set_Char_Size(omb_freetype_lcd_face, font_size * 64, 0, 100, 0)) {
+		omb_log(LOG_DEBUG, "%-33s: standard_size lcd", __FUNCTION__);
+		if (FT_Set_Pixel_Sizes(omb_freetype_lcd_face, 16, 16)){
 			omb_log(LOG_ERROR, "%-33s: cannot set font size", __FUNCTION__);
 			return OMB_ERROR;
 		}
 	} else {
-		omb_log(LOG_DEBUG, "%-33s: standard_size lcd", __FUNCTION__);
-		if (FT_Set_Pixel_Sizes(omb_freetype_lcd_face, 16, 16)){
+		omb_log(LOG_DEBUG, "%-33s: small_lcd selected", __FUNCTION__ );
+		if (FT_Set_Char_Size(omb_freetype_lcd_face, font_size * 64, 0, 100, 0)) {
 			omb_log(LOG_ERROR, "%-33s: cannot set font size", __FUNCTION__);
 			return OMB_ERROR;
 		}
