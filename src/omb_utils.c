@@ -648,12 +648,14 @@ void omb_utils_restore_kernel(omb_device_item *item)
 
 void omb_utils_reboot()
 {
+	omb_log(LOG_DEBUG, "%s-33s: ", __FUNCTION__);
 	omb_utils_sysvinit(NULL, "6");
 }
 
 void omb_utils_sysvinit(omb_device_item *item, const char *args)
 {
 	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+		omb_log(LOG_DEBUG, "%s-33s: execl %s %s", __FUNCTION__, OMB_SYSVINIT_BIN, args);
 		execl(OMB_SYSVINIT_BIN, OMB_SYSVINIT_BIN, args, NULL);
 	}
 	else {
@@ -664,6 +666,7 @@ void omb_utils_sysvinit(omb_device_item *item, const char *args)
 		if (omb_utils_file_exists(udev))
 				system("/etc/init.d/mdev stop");
 				
+		omb_log(LOG_DEBUG, "%s-33s: execl %s %s %s %s", __FUNCTION__, OMB_CHROOT_BIN, path, OMB_INIT_BIN, args);
 		execl(OMB_CHROOT_BIN, OMB_CHROOT_BIN, path, OMB_INIT_BIN, args, NULL);
 	}
 }
