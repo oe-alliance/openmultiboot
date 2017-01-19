@@ -634,6 +634,7 @@ void omb_utils_restore_kernel(omb_device_item *item)
 	}
 
 	sprintf(filename, "%s/%s/.kernels/%s.bin", OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
+	omb_log(LOG_DEBUG, "%-33s: preparing kernel restore for image '%s'", __FUNCTION__, dumpfile);
 	if (omb_utils_file_exists(filename)) {
 #ifndef OMB_MMCBLK
 		omb_log(LOG_DEBUG, "%-33s: erasing MTD", __FUNCTION__);
@@ -641,16 +642,20 @@ void omb_utils_restore_kernel(omb_device_item *item)
 		system(cmd);
 #endif
 	
-		omb_log(LOG_DEBUG, "%-33s: restore kernel for image '%s'", __FUNCTION__, dumpfile);
+		omb_log(LOG_DEBUG, "%-33s: restoring kernel for image '%s'", __FUNCTION__, dumpfile);
 #ifdef OMB_DREAMBOX
 		sprintf(cmd, "%s -mno %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
 #elif defined(OMB_MMCBLK)
-		if (omb_utils_file_exists(OMB_PROC_STB))
+		if (omb_utils_file_exists(OMB_PROC_STB)) {
 			sprintf(cmd, "%s of=%s if=%s/%s/.kernels/%s.bin", OMB_DD_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
+			system(cmd);
+		} else {
+			omb_log(LOG_WARNING, "%-33s: missing %s - we are really on an STB?", __FUNCTION__, OMB_PROC_STB);
+		}
 #else
 		sprintf(cmd, "%s -pm %s %s/%s/.kernels/%s.bin", OMB_NANDWRITE_BIN, OMB_KERNEL_MTD, OMB_MAIN_DIR, OMB_DATA_DIR, dumpfile);
-#endif
 		system(cmd);
+#endif
 	}
 	free(dumpfile);
 }

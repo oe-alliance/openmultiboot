@@ -284,6 +284,8 @@ int main(int argc, char *argv[])
 		}
 
 		item = omb_menu_get_selected();
+		omb_log(LOG_DEBUG, "%-33s: selected %s", __FUNCTION__, selected);
+		omb_log(LOG_DEBUG, "%-33s: item->identifier %s", __FUNCTION__, item->identifier);
 		if ((item && selected && strcmp(selected, item->identifier)) != 0 || (item && strstr(item->identifier, "vti") && !force)) {
 			omb_utils_restore_kernel(item);
 			omb_utils_save(OMB_SETTINGS_SELECTED, item->identifier);
