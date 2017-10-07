@@ -246,7 +246,7 @@ int main(int argc, char *argv[])
 				omb_log(LOG_DEBUG, "%-33s: loading modules...", __FUNCTION__);
 				omb_utils_load_modules(item);
 				if (!omb_utils_file_exists(OMB_VIDEO_DEVICE)) {
-					omb_utils_load_modules_vugl(item);
+					omb_utils_load_modules_gl(item);
 				}
 				omb_utils_setrctype();
 			}
