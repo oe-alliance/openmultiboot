@@ -150,7 +150,7 @@ int omb_utils_find_and_mount()
 		omb_utils_create_dir_tree();
 		
 		while ((dir = readdir(fd)) != NULL) {
-			if (strlen(dir->d_name) == 4 && memcmp(dir->d_name, "sd", 2) == 0) {
+			if ((strlen(dir->d_name) == 3 || strlen(dir->d_name) == 4) && memcmp(dir->d_name, "sd", 2) == 0) {
 				char device[255];
 				sprintf(device, "%s/%s", OMB_DEVICES_DIR, dir->d_name);
 				omb_log(LOG_DEBUG, "%-33s: check device %s", __FUNCTION__, device);
