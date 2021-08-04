@@ -44,7 +44,7 @@ int omb_branding_is_compatible(const char* base_dir)
 	// we assume that flash image have boxbranding support
 
 	omb_log(LOG_DEBUG, "%-33s: processing %s", __FUNCTION__, base_dir);
-	sprintf(brand_oem_cmd, "%s %s /usr/lib/enigma2/python brand_oem", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
+	sprintf(brand_oem_cmd, "%s %s /usr/lib/enigma2/python brand", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
 	fd = popen(brand_oem_cmd, "r");
 	if (fd) {
 		char buffer[255];
@@ -57,7 +57,7 @@ int omb_branding_is_compatible(const char* base_dir)
 		omb_log(LOG_DEBUG, "%-33s: brand_oem = %s", __FUNCTION__, brand_oem);
 	}
 
-	sprintf(box_type_inflash_cmd, "%s %s /usr/lib/enigma2/python box_type", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
+	sprintf(box_type_inflash_cmd, "%s %s /usr/lib/enigma2/python model", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN);
 	fd = popen(box_type_inflash_cmd, "r");
 	if (fd) {
 		char buffer[255];
@@ -70,7 +70,7 @@ int omb_branding_is_compatible(const char* base_dir)
 		omb_log(LOG_DEBUG, "%-33s: box_type_inflash = %s", __FUNCTION__, box_type_inflash);
 	}
 	
-	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python box_type 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
+	sprintf(box_type_cmd, "%s %s %s/usr/lib/enigma2/python model 2>/dev/null", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
 	fd = popen(box_type_cmd, "r");
 	if (fd) {
 		char buffer[255];
@@ -149,7 +149,7 @@ omb_device_item *omb_branding_read_info(const char* base_dir, const char *identi
 	if (!settings_value) {
 		version[0] = name[0] = '\0';
 
-		sprintf(distro_cmd, "%s %s %s/usr/lib/enigma2/python image_distro", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
+		sprintf(distro_cmd, "%s %s %s/usr/lib/enigma2/python distro", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
 		FILE *fd = popen(distro_cmd, "r");
 		if (fd) {
 			char buffer[255];
@@ -161,7 +161,7 @@ omb_device_item *omb_branding_read_info(const char* base_dir, const char *identi
 			pclose(fd);
 		}
 	
-		sprintf(version_cmd, "%s %s %s/usr/lib/enigma2/python image_version", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
+		sprintf(version_cmd, "%s %s %s/usr/lib/enigma2/python imageversion", OMB_PYTHON_BIN, OMB_BRANDING_HELPER_BIN, base_dir);
 		fd = popen(version_cmd, "r");
 		if (fd) {
 			char buffer[255];
