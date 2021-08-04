@@ -16,6 +16,8 @@ AC_CHECK_LIB([m], [acos])
 # Checks for header files.
 AC_CHECK_HEADERS([fcntl.h mntent.h stdlib.h string.h sys/ioctl.h sys/mount.h unistd.h])
 
+PKG_CHECK_MODULES(LIBJSON, [ json-c >= 0.11 ])
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_INLINE
 
