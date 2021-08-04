@@ -204,7 +204,7 @@ omb_device_item *omb_utils_get_images()
 
 	omb_log(LOG_DEBUG, "%-33s: discover images", __FUNCTION__);
 
-	sprintf(cmd, "%s/open-multiboot-menu-helper.py", OMB_PLUGIN_DIR);
+	sprintf(cmd, "%s/open-multiboot-menu-helper.py %s", OMB_PLUGIN_DIR, OMB_MAIN_DIR);
 	fd = popen(cmd, "r");
 	if (! fd) {
 		return first;
