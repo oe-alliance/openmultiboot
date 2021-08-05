@@ -466,11 +466,13 @@ void omb_utils_prepare_destination(omb_device_item *item)
 		char sys[255];
 		char omb[255];
 		char omb_plugin[255];
+		char flash[255];
 		sprintf(dev, "%s/%s/%s/dev", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 		sprintf(proc, "%s/%s/%s/proc", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 		sprintf(sys, "%s/%s/%s/sys", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier);
 		sprintf(omb, "%s/%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_MAIN_DIR);
 		sprintf(omb_plugin, "%s/%s/%s/%s", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_PLUGIN_DIR);
+		sprintf(flash, "%s/%s/%s/%s/%s/flash", OMB_MAIN_DIR, OMB_DATA_DIR, item->identifier, OMB_MAIN_DIR, OMB_DATA_DIR);
 		
 		if (!omb_utils_is_mounted(dev))
 			if (mount("/dev", dev, NULL, MS_BIND, NULL) != 0)
@@ -497,6 +499,13 @@ void omb_utils_prepare_destination(omb_device_item *item)
 		if (!omb_utils_is_mounted(omb_plugin))
 			if (mount(OMB_PLUGIN_DIR, omb_plugin, NULL, MS_BIND, NULL) != 0)
 				omb_log(LOG_ERROR, "%-33s: cannot bind %s to %s", __FUNCTION__, OMB_PLUGIN_DIR, omb_plugin);
+
+		if (!omb_utils_dir_exists(flash))
+			mkdir(flash, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+		if (!omb_utils_is_mounted(flash))
+			if (mount("/", flash, NULL, MS_BIND, NULL) != 0)
+				omb_log(LOG_ERROR, "%-33s: cannot bind %s to %s", __FUNCTION__, "/", flash);
 	}
 	
 }
