@@ -193,6 +193,7 @@ omb_device_item *omb_utils_get_images()
 	struct json_object *label;
 	struct json_object *path;
 	struct json_object *identifier;
+	struct json_object *background;
 	struct json_object *kernelbin;
 	struct json_object *labelfile;
 	size_t i;
@@ -236,6 +237,8 @@ omb_device_item *omb_utils_get_images()
 		printf("   %s\n",json_object_get_string(path));
 		json_object_object_get_ex(image_entry, "identifier", &identifier);
 		printf("   %s\n",json_object_get_string(identifier));
+		json_object_object_get_ex(image_entry, "background", &background);
+		printf("   %s\n",json_object_get_string(background));
 //		json_object_object_get_ex(image_entry, "kernelbin", &kernelbin);
 //		printf("   %s\n",json_object_get_string(kernelbin));
 //		json_object_object_get_ex(image_entry, "labelfile", &labelfile);
@@ -249,6 +252,9 @@ omb_device_item *omb_utils_get_images()
 		tmp = json_object_get_string(identifier);
 		item->identifier = malloc(strlen(tmp) + 1);
 		strcpy(item->identifier, tmp);
+		tmp = json_object_get_string(background);
+		item->background = malloc(strlen(tmp) + 1);
+		strcpy(item->background, tmp);
 		tmp = json_object_get_string(label);
 		item->label = malloc(strlen(tmp) + 1);
 		strcpy(item->label, tmp);
@@ -275,6 +281,7 @@ void omb_utils_free_items(omb_device_item *items)
 		free(tmp2->label);
 		free(tmp2->directory);
 		free(tmp2->identifier);
+		free(tmp2->background);
 		free(tmp2);
 	}
 }
@@ -282,7 +289,7 @@ void omb_utils_free_items(omb_device_item *items)
 void omb_utils_update_background(omb_device_item *item)
 {
 	char tmp[255];
-	sprintf(tmp, "%s %s/usr/share/bootlogo.mvi", OMB_SHOWIFRAME_BIN, item->directory);
+	sprintf(tmp, "%s %s%s", OMB_SHOWIFRAME_BIN, item->directory, item->background);
 	system(tmp);
 }
 

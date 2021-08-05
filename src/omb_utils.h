@@ -28,6 +28,7 @@ typedef struct omb_device_item
 	char *label;
 	char *directory;
 	char *identifier;
+	char *background;
 	struct omb_device_item *next;
 } omb_device_item;
 
