@@ -33,7 +33,6 @@
 #include "omb_common.h"
 #include "omb_log.h"
 #include "omb_utils.h"
-#include "omb_branding.h"
 
 #define OMB_FS_MAX 3
 static const char *omb_utils_fs_types[OMB_FS_MAX] = { "ext4", "ext3" };
