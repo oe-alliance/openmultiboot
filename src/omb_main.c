@@ -226,8 +226,8 @@ int main(int argc, char *argv[])
 			omb_menu_set(items);
 			selected = omb_utils_read(OMB_SETTINGS_SELECTED);
 			if (!selected) {
-				selected = malloc(6);
-				strcpy(selected, "flash");
+				selected = malloc(sizeof(OMB_SETTINGS_FLASH));
+				strcpy(selected, OMB_SETTINGS_FLASH);
 			}
 			omb_menu_set_selected(selected);
 			item = omb_menu_get_selected();
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
 		}
 		
 		if (!is_rebooting) {
-			if (item != NULL && strcmp(item->identifier, "flash") != 0)
+			if (item != NULL && strcmp(item->identifier, OMB_SETTINGS_FLASH) != 0)
 				omb_utils_remount_media(item);
 			omb_utils_umount(OMB_MAIN_DIR);
 			omb_utils_sysvinit(item, NULL);

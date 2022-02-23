@@ -32,14 +32,26 @@ typedef struct omb_device_item
 	struct omb_device_item *next;
 } omb_device_item;
 
-#define OMB_SETTINGS_SELECTED "selected"
-#define OMB_SETTINGS_FORCE "force"
-#define OMB_SETTINGS_NEXTBOOT "nextboot"
-#define OMB_SETTINGS_TIMER "timer"
-#define OMB_SETTINGS_RCTYPE "rctype"
+#ifdef BOXTYPE
+#define OMB_SETTINGS_PRE BOXTYPE "-"
+#else
+#define OMB_SETTINGS_PRE ""
+#endif
+
+#define OMB_SETTINGS_FLASH    OMB_SETTINGS_PRE "flash"
+#define OMB_SETTINGS_SELECTED OMB_SETTINGS_PRE "selected"
+#define OMB_SETTINGS_FORCE    OMB_SETTINGS_PRE "force"
+#define OMB_SETTINGS_NEXTBOOT OMB_SETTINGS_PRE "nextboot"
+#define OMB_SETTINGS_TIMER    OMB_SETTINGS_PRE "timer"
+#define OMB_SETTINGS_RCTYPE   OMB_SETTINGS_PRE "rctype"
 
 int omb_utils_find_and_mount();
 omb_device_item *omb_utils_get_images();
+
+int omb_utils_umount(const char* mountpoint);
+int omb_utils_dir_exists(const char* folder);
+int omb_utils_file_exists(const char* filename);
+
 void omb_utils_update_background(omb_device_item *item);
 void omb_utils_free_items(omb_device_item *items);
 

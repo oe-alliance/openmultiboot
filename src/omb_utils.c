@@ -458,7 +458,7 @@ void omb_utils_prepare_destination(omb_device_item *item)
 {	
 	omb_log(LOG_DEBUG, "%-33s: prepare destination", __FUNCTION__);
 
-	if (item != NULL && strcmp(item->identifier, "flash") != 0)
+	if (item != NULL && strcmp(item->identifier, OMB_SETTINGS_FLASH) != 0)
 	{
 		char dev[255];
 		char proc[255];
@@ -515,7 +515,7 @@ void omb_utils_load_modules(omb_device_item *item)
 	
 	omb_log(LOG_DEBUG, "%-33s: load modules", __FUNCTION__);
 
-	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+	if (item == NULL || strcmp(item->identifier, OMB_SETTINGS_FLASH) == 0) {
 		system(OMB_MODUTILS_BIN);
 	}
 	else {
@@ -535,7 +535,7 @@ void omb_utils_load_modules(omb_device_item *item)
 
 #ifdef __sh__
 	omb_log(LOG_DEBUG, "%-33s: load lirc", __FUNCTION__);
-	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+	if (item == NULL || strcmp(item->identifier, OMB_SETTINGS_FLASH) == 0) {
 		system("/etc/init.d/populate-volatile.sh start");
 		system("/etc/init.d/lircd start");
 	}
@@ -563,7 +563,7 @@ void omb_utils_load_modules_gl(omb_device_item *item)
 	
 	int i;
 
-	if (item == NULL || strcmp(item->identifier, "flash") == 0) 
+	if (item == NULL || strcmp(item->identifier, OMB_SETTINGS_FLASH) == 0) 
 	{
 		system("/etc/init.d/mountall.sh start");
 		system("/etc/init.d/modload.sh start");
@@ -678,7 +678,7 @@ void omb_utils_reboot()
 
 void omb_utils_sysvinit(omb_device_item *item, const char *args)
 {
-	if (item == NULL || strcmp(item->identifier, "flash") == 0) {
+	if (item == NULL || strcmp(item->identifier, OMB_SETTINGS_FLASH) == 0) {
 		execl(OMB_SYSVINIT_BIN, OMB_SYSVINIT_BIN, args, NULL);
 	}
 	else {
