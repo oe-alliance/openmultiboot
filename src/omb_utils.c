@@ -409,6 +409,7 @@ void omb_utils_build_platform_wrapper(omb_device_item *item)
 	fp = fopen(tmp,"w");
 	fprintf(fp,"%s","#!/bin/sh\n\n");
 	fprintf(fp,"%s","export PATH=/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/usr/sbin:/sbin\n");
+	fprintf(fp,"%s","/etc/init.d/vuplus-wifi-init.sh start\n");
 	fprintf(fp,"%s","/etc/init.d/vuplus-platform-util start\n");
 	fprintf(fp,"%s","/etc/init.d/platform-util start\n");
 	fprintf(fp,"%s","/etc/init.d/gigablue-platform-util start\n");
@@ -570,6 +571,7 @@ void omb_utils_load_modules_gl(omb_device_item *item)
 		system("/etc/init.d/modutils.sh start");
 		system("/etc/init.d/populate-volatile.sh start");
 		system("/etc/init.d/bootmisc.sh start");
+		system("/etc/init.d/vuplus-wifi-init.sh start");
 		system("/etc/init.d/vuplus-platform-util start");
 		system("/etc/init.d/platform-util start");
 		system("/etc/init.d/gigablue-platform-util start");
